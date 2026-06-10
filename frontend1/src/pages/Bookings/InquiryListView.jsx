@@ -1,0 +1,184 @@
+import React, { useState, useMemo } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Search, Filter, ChevronLeft, Phone, Mail, Calendar, Clock, Check, X, PhoneCall, MoreVertical } from 'lucide-react';
+import { mockInquiries, getUrgency, getStatusColor, getDaysRemaining } from './mockData';
+
+const InquiryListView = () => {
+  const { categoryId } = useParams();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  const categoryName = decodeURIComponent(categoryId);
+
+  // Filter inquiries based on category, search, and status
+  const inquiries = useMemo(() => {
+    return mockInquiries.filter(inq => {
+      if (inq.category !== categoryName) return false;
+      if (statusFilter !== 'All' && inq.status !== statusFilter) return false;
+      
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return (
+          inq.customerName.toLowerCase().includes(term) ||
+          inq.email.toLowerCase().includes(term) ||
+          inq.phone.includes(term) ||
+          inq.package.name.toLowerCase().includes(term)
+        );
+      }
+      return true;
+    }).sort((a, b) => {
+      // Sort by urgency (days remaining) ascending
+      return getDaysRemaining(a.eventDate) - getDaysRemaining(b.eventDate);
+    });
+  }, [categoryName, searchTerm, statusFilter]);
+
+  const formatDate = (dateString) => {
+    return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(dateString));
+  };
+
+  return (
+    <div className="animate-in slide-in-from-right-4 duration-500">
+      
+      {/* Top Header */}
+      <div className="mb-8">
+        <button 
+          onClick={() => navigate('/bookings')}
+          className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-900 font-bold text-sm mb-4 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> Back to Categories
+        </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900">{categoryName} Inquiries</h1>
+            <p className="text-sm text-zinc-500 font-medium mt-1">Manage and track all booking requests for this category.</p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input 
+                type="text" 
+                placeholder="Search by name, email, package..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 transition-all text-sm shadow-sm"
+              />
+            </div>
+            <div className="relative flex-shrink-0">
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="pl-10 pr-8 py-2.5 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 transition-all text-sm shadow-sm appearance-none font-bold text-zinc-700 cursor-pointer"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Approved">Approved</option>
+                <option value="Completed">Completed</option>
+              </select>
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Inquiry Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {inquiries.map((inquiry) => {
+          const urgency = getUrgency(inquiry.eventDate);
+          const statusColor = getStatusColor(inquiry.status);
+          const daysRemaining = getDaysRemaining(inquiry.eventDate);
+
+          return (
+            <div key={inquiry.id} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full group">
+              
+              {/* Header: Package Name and Badges */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="pr-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1 block">Selected Package</span>
+                  <Link to={`/bookings/inquiry/${inquiry.id}`} className="text-lg font-bold text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {inquiry.package.name}
+                  </Link>
+                </div>
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <span className={`inline-flex px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${statusColor}`}>
+                    {inquiry.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Customer Info */}
+              <div className="bg-zinc-50 rounded-xl p-4 mb-4 border border-zinc-100 flex-grow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold">
+                    {inquiry.customerName.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 text-sm">{inquiry.customerName}</h4>
+                    <p className="text-xs text-zinc-500">ID: {inquiry.id}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-zinc-600">
+                    <Phone className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>{inquiry.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-zinc-600">
+                    <Mail className="w-3.5 h-3.5 text-zinc-400" />
+                    <span className="truncate">{inquiry.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dates & Urgency */}
+              <div className="flex items-center justify-between py-3 border-t border-b border-zinc-100 mb-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-zinc-400" />
+                  <div>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Event Date</span>
+                    <span className="font-bold text-zinc-900">{formatDate(inquiry.eventDate)}</span>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Urgency</span>
+                  <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${urgency.color}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${urgency.dot}`}></span>
+                    {daysRemaining < 0 ? 'Passed' : `${daysRemaining} Days Left`}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex items-center gap-2 mt-auto">
+                <button 
+                  onClick={() => navigate(`/bookings/inquiry/${inquiry.id}`)}
+                  className="flex-1 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-colors shadow-sm"
+                >
+                  View Details
+                </button>
+                <a href={`tel:${inquiry.phone}`} className="p-2.5 bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors shadow-sm">
+                  <PhoneCall className="w-4 h-4" />
+                </a>
+              </div>
+
+            </div>
+          );
+        })}
+        
+        {inquiries.length === 0 && (
+          <div className="col-span-full py-20 flex flex-col items-center justify-center text-zinc-500 bg-zinc-50 rounded-3xl border border-dashed border-zinc-300">
+            <Search className="w-12 h-12 mb-4 text-zinc-300" />
+            <h3 className="text-lg font-bold text-zinc-900">No Inquiries Found</h3>
+            <p className="text-sm text-center max-w-sm mt-2">Try adjusting your search terms or filters.</p>
+          </div>
+        )}
+      </div>
+
+    </div>
+  );
+};
+
+export default InquiryListView;
