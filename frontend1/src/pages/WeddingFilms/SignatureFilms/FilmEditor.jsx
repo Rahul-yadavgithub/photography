@@ -1,19 +1,111 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, UploadCloud, Video, Link as LinkIcon, Star, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Save, UploadCloud, Video, Link as LinkIcon, Star, Check, Trash2 } from 'lucide-react';
+import { useFilmsApi, useFilmCategoriesApi } from '../../../api/films';
+import ImageUploader from '../../../components/shared/ImageUploader';
+import VideoUploader from '../../../components/shared/VideoUploader';
+import DeleteModal from '../../../components/shared/DeleteModal';
+import { useNotification } from '../../../context/NotificationContext';
 
 const FilmEditor = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { loading: saving, fetchFilmById, createFilm, updateFilm, deleteFilm } = useFilmsApi();
+  const { fetchCategories } = useFilmCategoriesApi();
+  const { showSuccess, showError } = useNotification();
+  
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     source: 'youtube',
     videoUrl: '',
     duration: '',
-    category: 'Wedding Film',
+    category: '',
     status: 'Draft',
     featured: false,
-    displayOrder: 1
+    displayOrder: 1,
+    thumbnail: '',
+    thumbnailVideo: '',
+    thumbnailType: 'image'
   });
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setLoading(true);
+      const cats = await fetchCategories();
+      setCategories(cats || []);
+      
+      if (cats && cats.length > 0 && !formData.category) {
+        setFormData(prev => ({ ...prev, category: cats[0].name }));
+      }
+
+      if (id) {
+        const film = await fetchFilmById(id);
+        if (film) {
+          setFormData({
+            title: film.title || '',
+            source: film.videoSource || 'youtube',
+            videoUrl: film.videoUrl || '',
+            duration: film.duration || '',
+            category: film.category || '',
+            status: film.status || 'Draft',
+            featured: film.featured || false,
+            displayOrder: film.displayOrder || 1,
+            thumbnail: film.thumbnail || '',
+            thumbnailVideo: film.thumbnailVideo || '',
+            thumbnailType: film.thumbnailType || 'image'
+          });
+        }
+      }
+      setLoading(false);
+    };
+    loadInitialData();
+  }, [id, fetchCategories, fetchFilmById]);
+
+  const handleSave = async () => {
+    try {
+      const dataToSave = {
+        ...formData,
+        videoSource: formData.source // map to model
+      };
+      
+      if (id) {
+        await updateFilm(id, dataToSave);
+        showSuccess('Film updated successfully.');
+      } else {
+        await createFilm(dataToSave);
+        showSuccess('Film created successfully.');
+      }
+      navigate('/films/signature');
+    } catch (err) {
+      console.error('Failed to save film:', err);
+      showError('Failed to save film. Please try again.');
+    }
+  };
+
+  const confirmDelete = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteFilm(id);
+      showSuccess('Film deleted successfully.');
+      navigate('/films/signature');
+    } catch (err) {
+      console.error('Failed to delete film:', err);
+      showError('Failed to delete film. Please try again.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center text-zinc-500">Loading editor...</div>;
 
   return (
     <div className="w-full max-w-[1000px] mx-auto pb-24 font-sans text-zinc-900 animate-in fade-in duration-500">
@@ -21,7 +113,7 @@ const FilmEditor = () => {
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
         <div className="flex items-center gap-5">
-          <Link to="/wedding-films/signature" className="p-2.5 text-zinc-500 hover:text-zinc-900 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-all shadow-sm hover:shadow">
+          <Link to="/films/signature" className="p-2.5 text-zinc-500 hover:text-zinc-900 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-all shadow-sm hover:shadow">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -30,11 +122,21 @@ const FilmEditor = () => {
           </div>
         </div>
         <div className="flex items-center gap-4 w-full sm:w-auto">
+          {id && (
+            <button 
+              onClick={confirmDelete}
+              disabled={saving}
+              className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 transition-all shadow-sm disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" /> Delete
+            </button>
+          )}
           <button 
-            onClick={() => navigate('/wedding-films/signature')}
-            className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50"
           >
-            <Save className="w-4 h-4" /> Save Film
+            <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Film'}
           </button>
         </div>
       </div>
@@ -68,10 +170,9 @@ const FilmEditor = () => {
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                     className="w-full px-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 outline-none transition-all text-zinc-900 text-base appearance-none cursor-pointer"
                   >
-                    <option>Wedding Film</option>
-                    <option>Pre-Wedding Film</option>
-                    <option>Engagement Film</option>
-                    <option>Destination Wedding</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat.name}>{cat.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -125,30 +226,66 @@ const FilmEditor = () => {
                 </div>
               </div>
             ) : (
-              <div className="w-full h-48 border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-400 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer">
-                <div className="p-4 bg-white rounded-full shadow-sm">
-                  <UploadCloud className="w-6 h-6 text-zinc-600" />
-                </div>
-                <div className="text-center">
-                  <span className="font-bold text-zinc-900">Click to upload video</span>
-                  <p className="text-xs text-zinc-500 mt-1">MP4, WebM up to 500MB</p>
-                </div>
+              <div className="space-y-4">
+                <VideoUploader 
+                  folder="films/videos"
+                  onUploadSuccess={(url) => setFormData({...formData, videoUrl: url})}
+                />
+                {formData.videoUrl && (
+                  <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-200 bg-black">
+                    <video src={formData.videoUrl} controls className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Thumbnail */}
           <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm">
-            <h3 className="text-xl font-bold text-zinc-900 mb-6">Custom Thumbnail</h3>
-            <div className="w-full aspect-video border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-400 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden group">
-              <div className="p-4 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-6 h-6 text-zinc-600" />
-              </div>
-              <div className="text-center">
-                <span className="font-bold text-zinc-900">Upload high-res thumbnail</span>
-                <p className="text-xs text-zinc-500 mt-1">1920x1080px recommended</p>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-zinc-900">Custom Thumbnail</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setFormData({...formData, thumbnailType: 'image'})}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.thumbnailType === 'image' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                >
+                  Image
+                </button>
+                <button
+                  onClick={() => setFormData({...formData, thumbnailType: 'video'})}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${formData.thumbnailType === 'video' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}
+                >
+                  Video
+                </button>
               </div>
             </div>
+
+            {formData.thumbnailType === 'image' ? (
+              <div className="space-y-4">
+                <ImageUploader 
+                  folder="films"
+                  onUploadSuccess={(url) => setFormData({...formData, thumbnail: url})}
+                />
+                {formData.thumbnail && (
+                  <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-200 relative">
+                    <img src={formData.thumbnail} className="w-full h-full object-cover" alt="Thumbnail Preview" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <VideoUploader 
+                  folder="films/thumbnails"
+                  onUploadSuccess={(url) => setFormData({...formData, thumbnailVideo: url})}
+                />
+                <p className="text-xs text-zinc-500">Provide a short, looping mp4 video (no audio).</p>
+                {formData.thumbnailVideo && (
+                  <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-200 relative bg-black">
+                    <video src={formData.thumbnailVideo} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
         </div>
@@ -159,9 +296,13 @@ const FilmEditor = () => {
             <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-900 mb-4">Publishing Status</h3>
             <div className="space-y-3">
               {['Published', 'Draft', 'Archived'].map((status) => (
-                <label key={status} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.status === status ? 'border-zinc-900 bg-zinc-50' : 'border-transparent hover:bg-zinc-50'
-                }`}>
+                <label 
+                  key={status} 
+                  onClick={() => setFormData({...formData, status})}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    formData.status === status ? 'border-zinc-900 bg-zinc-50' : 'border-transparent hover:bg-zinc-50'
+                  }`}
+                >
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     formData.status === status ? 'border-zinc-900 bg-zinc-900' : 'border-zinc-300 bg-white'
                   }`}>
@@ -206,6 +347,15 @@ const FilmEditor = () => {
         </div>
 
       </div>
+
+      <DeleteModal 
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+        title="Delete Signature Film?"
+        message="Are you sure you want to permanently remove this film? This action cannot be undone."
+      />
     </div>
   );
 };

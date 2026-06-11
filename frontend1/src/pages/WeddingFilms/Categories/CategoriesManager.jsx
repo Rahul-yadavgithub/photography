@@ -1,74 +1,100 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Image as ImageIcon, Video, ArrowLeft, PlaySquare, Star, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Edit2, Trash2, Image as ImageIcon, Video, ArrowLeft, PlaySquare, Star, Eye, FolderTree } from 'lucide-react';
+import { useFilmCategoriesApi } from '../../../api/films';
+import ImageUploader from '../../../components/shared/ImageUploader';
+import CloudinaryMultipleUploader from '../../../components/shared/CloudinaryMultipleUploader';
+import DeleteModal from '../../../components/shared/DeleteModal';
+import { useNotification } from '../../../context/NotificationContext';
 
-const mockCategories = [
-  { 
-    id: 1, 
-    name: 'Wedding Films', 
-    count: 12, 
-    status: 'Active', 
-    order: 1, 
-    description: 'Luxury wedding stories captured through cinematic filmmaking.',
-    featured: 3,
-    lastUpdated: '2 Days Ago',
-    coverImage: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800' 
-  },
-  { 
-    id: 2, 
-    name: 'Pre-Wedding Films', 
-    count: 8, 
-    status: 'Active', 
-    order: 2, 
-    description: 'Romantic storytelling before the wedding day.',
-    featured: 2,
-    lastUpdated: '1 Week Ago',
-    coverImage: 'https://images.unsplash.com/photo-1583939008082-f7b764b88d4d?auto=format&fit=crop&q=80&w=800' 
-  },
-  { 
-    id: 3, 
-    name: 'Drone Cinematics', 
-    count: 18, 
-    status: 'Active', 
-    order: 3, 
-    description: 'Breathtaking aerial perspectives of your celebration.',
-    featured: 5,
-    lastUpdated: '3 Days Ago',
-    coverImage: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=800' 
-  },
-  { 
-    id: 4, 
-    name: 'Couple Stories', 
-    count: 6, 
-    status: 'Active', 
-    order: 4, 
-    description: 'Intimate and cinematic portraits capturing your everyday love story.',
-    featured: 1,
-    lastUpdated: '1 Month Ago',
-    coverImage: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80&w=800' 
-  },
-  { 
-    id: 5, 
-    name: 'Destination Weddings', 
-    count: 3, 
-    status: 'Archived', 
-    order: 5, 
-    description: 'Epic destination wedding films around the globe.',
-    featured: 0,
-    lastUpdated: '3 Months Ago',
-    coverImage: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&q=80&w=800' 
-  },
-];
-
-// Mock videos for the "View Videos" state
+// Mock videos for the "View Videos" state (we'll wire this to real films later)
 const mockVideos = [
   { id: 101, title: 'Rahul & Priya Wedding Film', status: 'Published', featured: true, thumbnail: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=300' },
-  { id: 102, title: 'Aditi & Rohan Destination Wedding', status: 'Published', featured: false, thumbnail: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&q=80&w=300' },
-  { id: 103, title: 'Neha & Aman Teaser', status: 'Draft', featured: false, thumbnail: 'https://images.unsplash.com/photo-1583939008082-f7b764b88d4d?auto=format&fit=crop&q=80&w=300' },
 ];
 
 const CategoriesManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  
+  // Delete Modal State
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, categoryId: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const { showSuccess, showError } = useNotification();
+  
+  const { loading, error, fetchCategories, createCategory, updateCategory, deleteCategory } = useFilmCategoriesApi();
+  const [categories, setCategories] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    coverImage: '',
+    heroBanners: [],
+    btsGallery: [],
+    displayOrder: 1,
+    status: 'Published'
+  });
+
+  const loadCategories = async () => {
+    const data = await fetchCategories();
+    setCategories(data || []);
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, [fetchCategories]);
+
+  const handleSaveCategory = async () => {
+    try {
+      if (formData.id) {
+        await updateCategory(formData.id, formData);
+      } else {
+        await createCategory(formData);
+      }
+      setIsModalOpen(false);
+      setFormData({ name: '', description: '', coverImage: '', heroBanners: [], btsGallery: [], displayOrder: 1, status: 'Published' });
+      showSuccess('Category saved successfully.');
+      loadCategories();
+    } catch (error) {
+      console.error('Failed to save:', error);
+      showError('Failed to save category.');
+    }
+  };
+
+  const handleEditCategory = (category) => {
+    setFormData({
+      id: category._id || category.id,
+      name: category.name || '',
+      description: category.description || '',
+      coverImage: category.coverImage || '',
+      heroBanners: category.heroBanners || [],
+      btsGallery: category.btsGallery || [],
+      displayOrder: category.displayOrder || 1,
+      status: category.status || 'Published'
+    });
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteModal({ isOpen: true, categoryId: id });
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!deleteModal.categoryId) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteCategory(deleteModal.categoryId);
+      showSuccess('Category deleted successfully.');
+      loadCategories();
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      showError('Failed to delete category.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModal({ isOpen: false, categoryId: null });
+    }
+  };
 
   if (selectedCategory) {
     return (
@@ -157,9 +183,17 @@ const CategoriesManager = () => {
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockCategories.map((category) => (
+        {loading ? (
+          <div className="col-span-full py-12 text-center text-zinc-500">Loading categories...</div>
+        ) : categories.length === 0 ? (
+          <div className="col-span-full py-12 text-center bg-white rounded-2xl border border-zinc-200">
+            <FolderTree className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-zinc-900">No categories found</h3>
+            <p className="text-zinc-500 text-sm mt-1">Create your first film category to get started.</p>
+          </div>
+        ) : categories.map((category) => (
           <div 
-            key={category.id} 
+            key={category._id || category.id} 
             className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 flex flex-col"
           >
             {/* Cover Image Area */}
@@ -195,9 +229,9 @@ const CategoriesManager = () => {
             <div className="p-5 flex-grow flex flex-col">
               <p className="text-sm text-zinc-600 line-clamp-2 flex-grow">{category.description}</p>
               
-              <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between">
-                <span className="text-[10px] uppercase font-bold text-zinc-400">Updated {category.lastUpdated}</span>
-              </div>
+                <span className="text-[10px] uppercase font-bold text-zinc-400">
+                  {category.updatedAt ? new Date(category.updatedAt).toLocaleDateString() : 'Just now'}
+                </span>
 
               {/* Action Buttons (Visible on Hover for desktop, always for mobile) */}
               <div className="mt-4 flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -207,10 +241,16 @@ const CategoriesManager = () => {
                 >
                   View Videos
                 </button>
-                <button className="p-2.5 text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors">
+                <button 
+                  onClick={() => handleEditCategory(category)}
+                  className="p-2.5 text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors"
+                >
                   <Edit2 className="w-4 h-4" />
                 </button>
-                <button className="p-2.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
+                <button 
+                  onClick={(e) => confirmDelete(e, category._id || category.id)}
+                  className="p-2.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -221,7 +261,7 @@ const CategoriesManager = () => {
 
       {/* Premium Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+        <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
               <h3 className="text-xl font-bold text-zinc-900">Create Category</h3>
@@ -232,35 +272,77 @@ const CategoriesManager = () => {
               
               <div className="space-y-2">
                 <label className="text-sm font-bold text-zinc-700">Category Name</label>
-                <input type="text" className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900" placeholder="e.g. Cinematic Wedding Stories" />
+                <input 
+                  type="text" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900" 
+                  placeholder="e.g. Cinematic Wedding Stories" 
+                />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-zinc-700">Category Cover Image</label>
-                <div className="w-full h-40 border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-zinc-500 transition-colors group">
-                  <div className="p-3 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                    <ImageIcon className="w-6 h-6 text-zinc-500" />
+                <label className="text-sm font-bold text-zinc-700">Hero Banners (Slider)</label>
+                <CloudinaryMultipleUploader 
+                  folder="film-categories/hero"
+                  currentUrls={formData.heroBanners}
+                  onUploadSuccess={(urls) => setFormData({ ...formData, heroBanners: urls })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-zinc-700">Behind The Scenes Gallery</label>
+                <CloudinaryMultipleUploader 
+                  folder="film-categories/bts"
+                  currentUrls={formData.btsGallery}
+                  onUploadSuccess={(urls) => setFormData({ ...formData, btsGallery: urls })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-zinc-700">List Thumbnail (Optional)</label>
+                <ImageUploader 
+                  folder="film-categories"
+                  onUploadSuccess={(url) => setFormData({ ...formData, coverImage: url })}
+                />
+                {formData.coverImage && (
+                  <div className="mt-2 w-32 h-20 rounded-lg overflow-hidden border border-zinc-200">
+                    <img src={formData.coverImage} className="w-full h-full object-cover" alt="Preview" />
                   </div>
-                  <span className="text-sm font-bold text-zinc-700">Upload high-res cover</span>
-                  <span className="text-xs text-zinc-500">Recommended size: 1920x1080px</span>
-                </div>
+                )}
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-zinc-700">Short Description</label>
-                <textarea rows="2" className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900 resize-none" placeholder="Luxury wedding stories captured through cinematic filmmaking."></textarea>
+                <textarea 
+                  rows="2" 
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900 resize-none" 
+                  placeholder="Luxury wedding stories captured through cinematic filmmaking."
+                ></textarea>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-zinc-700">Display Order</label>
-                  <input type="number" defaultValue="1" className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900" />
+                  <input 
+                    type="number" 
+                    value={formData.displayOrder}
+                    onChange={(e) => setFormData({ ...formData, displayOrder: e.target.value })}
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-zinc-700">Status</label>
-                  <select className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900 appearance-none">
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                  <select 
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900 outline-none transition-all text-zinc-900 appearance-none"
+                  >
+                    <option value="Published">Published</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Archived">Archived</option>
                   </select>
                 </div>
               </div>
@@ -269,12 +351,22 @@ const CategoriesManager = () => {
             
             <div className="p-6 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-3">
               <button onClick={() => setIsModalOpen(false)} className="px-6 py-3 text-zinc-600 font-bold hover:bg-zinc-200 rounded-xl transition-colors">Cancel</button>
-              <button onClick={() => setIsModalOpen(false)} className="px-6 py-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 hover:shadow-lg transition-all hover:-translate-y-0.5">Save Category</button>
+              <button onClick={handleSaveCategory} disabled={loading} className="px-6 py-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 hover:shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50">
+                {loading ? 'Saving...' : 'Save Category'}
+              </button>
             </div>
           </div>
         </div>
       )}
       
+      <DeleteModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, categoryId: null })}
+        onConfirm={handleDeleteCategory}
+        isDeleting={isDeleting}
+        title="Delete Category?"
+        message="Are you sure you want to permanently delete this category? All associated films will lose their category reference."
+      />
     </div>
   );
 };

@@ -1,177 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategoriesWithPackages } from '../api/packageService';
-import BookingModal from '../components/BookingModal';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-
-const CategorySection = ({ category, setSelectedPackage }) => {
-  const scrollRef = useRef(null);
-
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      const { current } = scrollRef;
-      const scrollAmount = direction === 'left' ? -400 : 400;
-      current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  return (
-    <div className="mb-24">
-      {/* Category Banner (if available) */}
-      {category.banner && (
-        <div className="relative w-full h-[40vh] md:h-[50vh] mb-12 rounded-3xl overflow-hidden shadow-sm mx-4 sm:mx-6 lg:mx-8" style={{ width: 'calc(100% - 2rem)' }}>
-          <img src={category.banner} alt={category.name} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-          <div className="absolute bottom-10 left-10 md:bottom-16 md:left-16 z-10">
-            <h2 className="text-4xl md:text-5xl font-serif text-white mb-4">{category.name}</h2>
-            <p className="text-white/80 text-lg max-w-2xl">{category.description}</p>
-          </div>
-          <div className="absolute top-10 right-10 z-10 bg-black/40 backdrop-blur px-4 py-2 rounded-full border border-white/10 text-white text-sm font-bold tracking-wider">
-            {category.packages.length} PACKAGES
-          </div>
-        </div>
-      )}
-
-      {/* Category Header (if no banner) */}
-      {!category.banner && (
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 px-4 sm:px-6 lg:px-8">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-serif text-gray-900 mb-3">{category.name}</h2>
-            <p className="text-gray-500 max-w-2xl text-base">{category.description}</p>
-          </div>
-          <div className="text-sm font-bold text-gray-400 uppercase tracking-wider shrink-0">
-            {category.packages.length} Packages Available
-          </div>
-        </div>
-      )}
-
-      {/* Horizontal Scroll Controls */}
-      <div className="relative group">
-        <button 
-          onClick={() => scroll('left')}
-          className="absolute left-8 top-[35%] -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur border border-gray-200 rounded-full flex items-center justify-center shadow-lg text-gray-600 hover:text-gray-900 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 hidden md:flex"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        
-        <button 
-          onClick={() => scroll('right')}
-          className="absolute right-8 top-[35%] -translate-y-1/2 z-20 w-12 h-12 bg-white/90 backdrop-blur border border-gray-200 rounded-full flex items-center justify-center shadow-lg text-gray-600 hover:text-gray-900 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 hidden md:flex"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
-        {/* Scroll Container */}
-        <div 
-          ref={scrollRef}
-          className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 pt-4 px-4 sm:px-6 lg:px-8 scrollbar-hide scroll-smooth"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {/* Hide webkit scrollbar via inline styles or custom css class, we'll use a style block below */}
-          <style dangerouslySetInnerHTML={{__html: `
-            .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-            }
-          `}} />
-          
-          {category.packages.map((pkg) => (
-            <div key={pkg.id} className="snap-start shrink-0 w-[300px] md:w-[380px] bg-white rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 group">
-              {/* Top Area: Hero Image & Badges */}
-              <div className="relative h-64 md:h-72 overflow-hidden">
-                <img 
-                  src={pkg.media.thumbnail} 
-                  alt={pkg.name} 
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                
-                {/* Badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2 items-start">
-                  <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold uppercase tracking-wider rounded-full shadow-sm">
-                    {pkg.category}
-                  </span>
-                  {pkg.offer && (
-                    <span className="px-3 py-1 bg-[#ea580c] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-sm">
-                      {pkg.offer.badgeText}
-                    </span>
-                  )}
-                  {pkg.isPopular && (
-                    <span className="px-3 py-1 bg-gray-900 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-sm">
-                      Most Popular
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              {/* Middle Area: Story & Highlights */}
-              <div className="p-8 flex-grow flex flex-col relative bg-white">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-serif text-gray-900 mb-3 line-clamp-2">{pkg.name}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">{pkg.shortStory}</p>
-                </div>
-                
-                <div className="space-y-4 mb-8 flex-grow">
-                  {pkg.features.slice(0, 3).map((feature, fIdx) => (
-                    <div key={fIdx} className="flex items-start gap-3">
-                      <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#ea580c] shrink-0"></div>
-                      <div>
-                        <span className="block text-sm font-bold text-gray-900">{feature.title}</span>
-                        <span className="block text-xs text-gray-500 mt-0.5 line-clamp-1">{feature.description}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {pkg.features.length > 3 && (
-                    <div className="text-sm font-medium text-gray-400 italic mt-2">
-                      + {pkg.features.length - 3} more experiences
-                    </div>
-                  )}
-                </div>
-
-                {/* Bottom Area: Pricing & CTA */}
-                <div className="pt-6 border-t border-gray-100 flex flex-col gap-4 mt-auto">
-                  <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Starting Investment</span>
-                    {pkg.showPricing === false ? (
-                      <span className="text-2xl font-serif text-gray-900">Custom Quote</span>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-serif text-gray-900">${pkg.price}</span>
-                        {pkg.discountPrice && (
-                          <span className="text-sm text-gray-400 line-through">${pkg.discountPrice}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-col gap-3 mt-2">
-                    <Link 
-                      to={`/packages/${pkg.slug}`}
-                      className="w-full py-3.5 bg-gray-900 text-white text-center rounded-xl font-bold hover:bg-gray-800 transition-colors duration-300 shadow-md"
-                    >
-                      View Experience
-                    </Link>
-                    <button 
-                      onClick={() => setSelectedPackage(pkg)}
-                      className="w-full py-3.5 bg-white text-gray-900 border border-gray-200 text-center rounded-xl font-bold hover:bg-gray-50 transition-colors duration-300"
-                    >
-                      Check Availability
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+import { ChevronRight, LayoutGrid, ArrowRight } from 'lucide-react';
+import Breadcrumbs from '../components/common/Breadcrumbs';
+import { motion } from 'framer-motion';
 
 function PackagesPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPackage, setSelectedPackage] = useState(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -187,6 +23,24 @@ function PackagesPage() {
     fetchCategories();
   }, []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15, filter: 'blur(4px)' },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-[#f8fafc] w-full min-h-screen pt-32 pb-24 flex items-center justify-center">
@@ -196,29 +50,113 @@ function PackagesPage() {
   }
 
   return (
-    <div className="bg-[#f8fafc] w-full min-h-screen pt-32 pb-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 md:mb-24 text-center">
-        <h1 className="text-4xl md:text-6xl font-serif text-gray-900 mb-6 tracking-tight">Luxury Collections</h1>
-        <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-          Explore our curated experiences designed to preserve your most treasured moments with uncompromising quality and artistic vision.
-        </p>
+    <div className="bg-[#f8fafc] w-full min-h-screen pb-24 overflow-hidden font-sans text-gray-900">
+
+      {/* Premium Editorial Centered Text Hero */}
+      <div className="relative w-full min-h-[260px] md:min-h-[320px] bg-[#0a0a0a] flex flex-col justify-center pt-28 pb-14 md:pt-36 md:pb-16 z-10">
+        {/* Subtle Background Layer Gradients */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/40 to-transparent opacity-20"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-800/10 via-transparent to-transparent"></div>
+        </div>
+
+        <div className="relative z-10 max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="max-w-2xl flex flex-col items-center"
+          >
+            {/* Small Label */}
+            <motion.div variants={itemVariants} className="mb-4">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#ea580c]">
+                Explore Our Services
+              </span>
+            </motion.div>
+
+            {/* Main Heading */}
+            <motion.h1
+              variants={itemVariants}
+              className="text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-5 tracking-tight leading-[1.1]"
+            >
+              Discover Our Services
+            </motion.h1>
+
+            {/* Description */}
+            <motion.p
+              variants={itemVariants}
+              className="text-sm md:text-base text-zinc-400 max-w-xl font-light leading-relaxed"
+            >
+              Explore our curated selection of premium photography and videography categories designed to beautifully capture your story.
+            </motion.p>
+          </motion.div>
+        </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto">
-        {categories.map((category) => (
-          <CategorySection 
-            key={category.id} 
-            category={category} 
-            setSelectedPackage={setSelectedPackage} 
-          />
-        ))}
+      <div className="max-w-[1400px] mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+
+        <div className="mb-8">
+          <Breadcrumbs items={[{ label: 'Packages', path: '/packages' }]} />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {categories.map((category) => (
+            <div key={category.id} className="premium-card overflow-hidden flex flex-col group h-full">
+              {/* Category Image - Fixed Height */}
+              <div className="relative h-60 overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+                {category.media?.thumbnail || category.media?.banner ? (
+                  <img
+                    src={category.media.thumbnail || category.media.banner}
+                    alt={category.name}
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                    loading="lazy"
+                  />
+                ) : (
+                  <LayoutGrid className="w-16 h-16 text-gray-300" />
+                )}
+
+                <div className="absolute top-4 left-4">
+                  <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded shadow-sm">
+                    {category.packages.length} Packages
+                  </span>
+                </div>
+              </div>
+
+              {/* Content Area */}
+              <div className="p-6 flex-grow flex flex-col bg-white">
+                <div className="mb-4 flex-grow">
+                  <h3 className="text-xl font-serif text-gray-900 mb-2 leading-snug group-hover:text-[#ea580c] transition-colors">{category.name}</h3>
+                  <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-relaxed line-clamp-2">
+                    {category.shortDescription || category.description || "Premium photography service"}
+                  </p>
+                </div>
+
+                <div className="mt-auto">
+                  <div className="border-t border-gray-200 mb-4"></div>
+
+                  {/* Bottom Action Row */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Starting From</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        {category.startingPrice ? `₹${category.startingPrice}` : 'Custom Quote'}
+                      </span>
+                    </div>
+
+                    <Link
+                      to={`/category/${category.id}`}
+                      className="px-5 py-2 bg-[#ea580c] text-white text-xs font-bold uppercase tracking-wider rounded-full hover:bg-[#c2410c] transition-colors shadow-md flex items-center gap-2"
+                    >
+                      View Details <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
-      
-      <BookingModal 
-        isOpen={!!selectedPackage} 
-        onClose={() => setSelectedPackage(null)} 
-        packageData={selectedPackage ? { name: selectedPackage.name, features: selectedPackage.features.map(f => f.title) } : null} 
-      />
     </div>
   );
 }

@@ -1,30 +1,53 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Clock, CheckCircle2, AlertCircle, Camera, CheckSquare, CalendarDays } from 'lucide-react';
-import { mockInquiries, getDaysRemaining } from './mockData';
+import { getDaysRemaining } from './utils';
 
 const BookingsDashboard = () => {
   const navigate = useNavigate();
+  const [inquiries, setInquiries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const response = await fetch(`${backendUrl}/api/bookings`);
+        const result = await response.json();
+        if (result.success) {
+          setInquiries(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
 
   // Calculate top-level stats
   const stats = useMemo(() => {
-    const total = mockInquiries.length;
-    const pending = mockInquiries.filter(i => i.status === 'Pending').length;
-    const approved = mockInquiries.filter(i => i.status === 'Approved').length;
-    const completed = mockInquiries.filter(i => i.status === 'Completed').length;
-    const urgent = mockInquiries.filter(i => getDaysRemaining(i.eventDate) <= 3 && getDaysRemaining(i.eventDate) >= 0 && i.status !== 'Completed' && i.status !== 'Rejected').length;
+    const total = inquiries.length;
+    const pending = inquiries.filter(i => i.status === 'Pending').length;
+    const approved = inquiries.filter(i => i.status === 'Confirmed' || i.status === 'Approved').length;
+    const completed = inquiries.filter(i => i.status === 'Completed').length;
+    const urgent = inquiries.filter(i => getDaysRemaining(i.eventDate) <= 3 && getDaysRemaining(i.eventDate) >= 0 && i.status !== 'Completed' && i.status !== 'Cancelled').length;
 
     return { total, pending, approved, completed, urgent };
-  }, []);
+  }, [inquiries]);
 
   // Group inquiries by Category (Dynamic Categorization)
   const categories = useMemo(() => {
     const grouped = {};
     
-    mockInquiries.forEach(inq => {
-      if (!grouped[inq.category]) {
-        grouped[inq.category] = {
-          name: inq.category,
+    inquiries.forEach(inq => {
+      // In the backend, the category is called enquiryType.
+      // But let's map it or just use enquiryType as the category name.
+      const categoryName = inq.enquiryType || inq.category || 'Other';
+      if (!grouped[categoryName]) {
+        grouped[categoryName] = {
+          name: categoryName,
           total: 0,
           pending: 0,
           urgent: 0,
@@ -32,24 +55,24 @@ const BookingsDashboard = () => {
         };
       }
       
-      grouped[inq.category].total += 1;
+      grouped[categoryName].total += 1;
       
-      if (inq.status === 'Pending') grouped[inq.category].pending += 1;
+      if (inq.status === 'Pending') grouped[categoryName].pending += 1;
       
       const daysRemaining = getDaysRemaining(inq.eventDate);
-      if (daysRemaining <= 3 && daysRemaining >= 0 && inq.status !== 'Completed' && inq.status !== 'Rejected') {
-        grouped[inq.category].urgent += 1;
+      if (daysRemaining <= 3 && daysRemaining >= 0 && inq.status !== 'Completed' && inq.status !== 'Cancelled') {
+        grouped[categoryName].urgent += 1;
       }
 
-      const inqDate = new Date(inq.inquiryDate);
-      if (inqDate > grouped[inq.category].lastInquiryDate) {
-        grouped[inq.category].lastInquiryDate = inqDate;
+      const inqDate = new Date(inq.createdAt || inq.inquiryDate || new Date());
+      if (inqDate > grouped[categoryName].lastInquiryDate) {
+        grouped[categoryName].lastInquiryDate = inqDate;
       }
     });
 
     // Convert to array and filter out empty categories implicitly done by the grouping logic
     return Object.values(grouped).sort((a, b) => b.total - a.total);
-  }, []);
+  }, [inquiries]);
 
   // Format Date for display
   const formatDate = (date) => {

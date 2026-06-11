@@ -8,16 +8,22 @@ import {
   Star, 
   CalendarCheck,
   Globe,
-  Settings 
+  Settings,
+  Users,
+  FolderTree,
+  Store
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Customers', path: '/customers', icon: Users },
+    { name: 'Category Management', path: '/categories', icon: FolderTree },
     { name: 'Package Management', path: '/packages', icon: Package },
-    { name: 'Wedding Films', path: '/wedding-films', icon: Video },
+    { name: 'Films Platform', path: '/films', icon: Video },
     { name: 'Shoot Inspiration', path: '/shoot', icon: Camera },
-    { name: 'Memory Store Products', path: '/store', icon: ShoppingBag },
+    { name: 'Portfolio', path: '/portfolio', icon: ShoppingBag },
+    { name: 'Store Catalog', path: '/store-admin', icon: Store },
     { name: 'Testimonials', path: '/testimonials', icon: Star },
     { name: 'Bookings & Inquiries', path: '/bookings', icon: CalendarCheck },
     { name: 'Website Content', path: '/content', icon: Globe },

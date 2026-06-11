@@ -6,20 +6,16 @@ const PackageLivePreview = ({ formData, features, addOns, media, settings }) => 
   const activeAddOns = addOns.filter(a => a.status === 'Active');
 
   return (
-    <div className="mt-16 pt-16 border-t border-zinc-200">
-      <div className="text-center mb-10">
-        <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Live Package Preview</h2>
-        <p className="text-zinc-500 mt-2 font-medium">This is exactly how your customers will see this package.</p>
-      </div>
-
+    <div className="w-full">
       <div className="max-w-4xl mx-auto bg-white border border-zinc-200 rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row">
         
         {/* Left Side: Package Details & Features */}
         <div className="flex-grow flex flex-col border-b md:border-b-0 md:border-r border-zinc-100">
           {/* Media Banner */}
-          {media?.banner && (
-            <div className="w-full h-48 bg-zinc-100">
-              <img src={media.banner} alt="Package Banner" className="w-full h-full object-cover" />
+          {(media?.banner || media?.thumbnail) && (
+            <div className="w-full h-56 bg-zinc-100 relative">
+              <img src={media.banner || media.thumbnail} alt="Package Banner" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
             </div>
           )}
 
@@ -108,7 +104,7 @@ const PackageLivePreview = ({ formData, features, addOns, media, settings }) => 
                     <li key={addon.id} className="flex justify-between items-center text-sm">
                       <span className="font-semibold text-zinc-700">{addon.name}</span>
                       <span className="font-bold text-zinc-900">
-                        {settings?.showPricing === false ? 'On Request' : `+₹${addon.price}`}
+                        {settings?.showPricing === false ? 'On Request' : `+$${addon.price}`}
                       </span>
                     </li>
                   ))}

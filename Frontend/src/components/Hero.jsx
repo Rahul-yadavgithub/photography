@@ -33,8 +33,8 @@ function Hero() {
 
       {/* Elegant Editorial Card (Lowered Position) */}
       <div className="absolute -bottom-12 left-0 right-0 z-10 flex flex-col items-center w-full px-4 sm:px-8">
-        
-        <div 
+
+        <div
           className={`bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-10 md:p-14 w-full max-w-[1050px] mx-auto flex flex-col items-center justify-center text-center gap-10 transform transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]
             ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}
           `}
@@ -48,8 +48,8 @@ function Hero() {
               </span>
               <div className="w-8 h-[1px] bg-[#ea580c]"></div>
             </div>
-            
-            <h2 
+
+            <h2
               className="text-4xl md:text-5xl lg:text-6xl font-sans font-light mb-8 tracking-tight leading-[1.1] bg-clip-text text-transparent inline-block"
               style={{
                 backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.6) 100%)',
@@ -65,24 +65,24 @@ function Hero() {
                 100% { background-position: 200% center; }
               }
             `}</style>
-            
+
             <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-2xl font-light mb-10">
               We craft cinematic visual stories with unparalleled artistic vision. Let us preserve your most magical day in a masterpiece you'll cherish for a lifetime.
             </p>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-5 w-full md:w-auto shrink-0 justify-center">
-               <Link 
-                 to="/portfolio"
-                 className="flex items-center justify-center bg-[#ea580c] text-white px-10 py-4 font-medium tracking-[0.2em] text-[11px] uppercase hover:bg-white hover:text-gray-900 transition-colors duration-500 rounded-sm"
-               >
-                 View Our Masterpieces
-               </Link>
-               
-               <button className="flex items-center justify-center gap-3 px-10 py-4 text-white font-medium tracking-[0.2em] text-[11px] uppercase border border-white/20 hover:bg-white/10 transition-colors duration-500 rounded-sm group">
-                 <Play className="w-3.5 h-3.5 fill-current opacity-70 group-hover:opacity-100 transition-opacity" />
-                 Watch Showreel
-               </button>
+              <Link
+                to="/portfolio"
+                className="flex items-center justify-center bg-[#ea580c] text-white px-10 py-4 font-medium tracking-[0.2em] text-[11px] uppercase hover:bg-white hover:text-gray-900 transition-colors duration-500 rounded-sm"
+              >
+                View Our Masterpieces
+              </Link>
+
+              <button className="flex items-center justify-center gap-3 px-10 py-4 text-white font-medium tracking-[0.2em] text-[11px] uppercase border border-white/20 hover:bg-white/10 transition-colors duration-500 rounded-sm group">
+                <Play className="w-3.5 h-3.5 fill-current opacity-70 group-hover:opacity-100 transition-opacity" />
+                Watch Showreel
+              </button>
             </div>
           </div>
         </div>

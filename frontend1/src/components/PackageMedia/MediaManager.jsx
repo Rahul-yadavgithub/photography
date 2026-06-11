@@ -3,17 +3,13 @@ import ImageUploader from './ImageUploader';
 import GalleryUploader from './GalleryUploader';
 
 const MediaManager = ({ media, setMedia }) => {
-  // Mock image URLs for demo purposes
-  const MOCK_IMG = "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800";
-  const MOCK_BANNER = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=1920";
-
-  const handleUploadThumb = () => setMedia({ ...media, thumbnail: MOCK_IMG });
+  const handleUploadThumb = (url) => setMedia({ ...media, thumbnail: url });
   const handleDeleteThumb = () => setMedia({ ...media, thumbnail: null });
 
-  const handleUploadBanner = () => setMedia({ ...media, banner: MOCK_BANNER });
+  const handleUploadBanner = (url) => setMedia({ ...media, banner: url });
   const handleDeleteBanner = () => setMedia({ ...media, banner: null });
 
-  const handleUploadGallery = () => setMedia({ ...media, gallery: [...media.gallery, MOCK_IMG] });
+  const handleUploadGallery = (urls) => setMedia({ ...media, gallery: [...media.gallery, ...urls] });
   const handleDeleteGalleryItem = (idx) => setMedia({ ...media, gallery: media.gallery.filter((_, i) => i !== idx) });
 
   return (

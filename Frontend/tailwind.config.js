@@ -7,19 +7,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#d65b69', 
+        primary: '#d65b69',
         secondary: '#48b8d0',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'], 
+        sans: ['Inter', 'sans-serif'],
       },
       animation: {
-        'marquee': 'marquee 30s linear infinite',
+        'marquee': 'marquee 40s linear infinite',
+        'marquee-reverse': 'marquee-reverse 40s linear infinite',
       },
       keyframes: {
         marquee: {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
+        },
+        'marquee-reverse': {
+          '0%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0)' },
         }
       }
     },

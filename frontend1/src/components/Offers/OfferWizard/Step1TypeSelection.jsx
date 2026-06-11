@@ -3,7 +3,7 @@ import { Percent, Tag, Gift, Star, Clock, Calendar, Sparkles } from 'lucide-reac
 
 const TYPES = [
   { id: 'percentage', title: 'Percentage Discount', desc: 'e.g., 20% OFF. Best for seasonal sales.', icon: Percent, color: 'text-amber-600', bg: 'bg-amber-100' },
-  { id: 'flat', title: 'Flat Discount', desc: 'e.g., $500 OFF. Best for direct price reduction.', icon: Tag, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+  { id: 'flat', title: 'Flat Discount', desc: 'e.g., ₹500 OFF. Best for direct price reduction.', icon: Tag, color: 'text-emerald-600', bg: 'bg-emerald-100' },
   { id: 'addon', title: 'Free Add-On', desc: 'e.g., Free Drone Coverage.', icon: Gift, color: 'text-blue-600', bg: 'bg-blue-100' },
   { id: 'product', title: 'Free Product', desc: 'e.g., Free Premium Album.', icon: Star, color: 'text-purple-600', bg: 'bg-purple-100' },
   { id: 'limited', title: 'Limited Time Offer', desc: 'e.g., Ends In 3 Days.', icon: Clock, color: 'text-rose-600', bg: 'bg-rose-100' },

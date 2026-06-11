@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, Star, Heart, MessageCircle } from 'lucide-react';
-
-const mockReels = [
-  { id: 1, title: 'Epic Bride Entry with Cold Pyros', duration: '0:45', category: 'Bride Entry', status: 'Published', views: '240.5k', likes: '12k', featured: true, thumbnail: 'https://images.unsplash.com/photo-1595988506840-79841cb65bb0?auto=format&fit=crop&q=80&w=400&h=700' },
-  { id: 2, title: 'Haldi Madness - Full Energy!', duration: '0:30', category: 'Haldi', status: 'Published', views: '150k', likes: '8.4k', featured: false, thumbnail: 'https://images.unsplash.com/photo-1542042161784-26ab9e041e89?auto=format&fit=crop&q=80&w=400&h=700' },
-  { id: 3, title: 'Royal Mehendi Details', duration: '0:60', category: 'Mehendi', status: 'Draft', views: '-', likes: '-', featured: false, thumbnail: 'https://images.unsplash.com/photo-1563814838634-921d7b69a91d?auto=format&fit=crop&q=80&w=400&h=700' },
-  { id: 4, title: 'Breathtaking Aerial Drone Shots', duration: '0:25', category: 'Drone Reel', status: 'Published', views: '45.2k', likes: '2.1k', featured: true, thumbnail: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=400&h=700' },
-  { id: 5, title: 'The Ultimate Reception Party', duration: '0:40', category: 'Reception', status: 'Published', views: '88k', likes: '4.5k', featured: false, thumbnail: 'https://images.unsplash.com/photo-1530103862676-de8892bf309c?auto=format&fit=crop&q=80&w=400&h=700' },
-];
+import { useReelsApi } from '../../../api/films';
 
 const ReelsList = () => {
+  const { loading, fetchReels } = useReelsApi();
+  const [reels, setReels] = useState([]);
+
+  useEffect(() => {
+    const loadReels = async () => {
+      const data = await fetchReels();
+      setReels(data || []);
+    };
+    loadReels();
+  }, [fetchReels]);
+
   return (
     <div className="animate-in fade-in duration-500">
       
@@ -26,7 +30,7 @@ const ReelsList = () => {
         </div>
         
         <Link 
-          to="/wedding-films/reels/create" 
+          to="/films/reels/create" 
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
           <Plus className="w-5 h-5" />
@@ -36,8 +40,12 @@ const ReelsList = () => {
 
       {/* Grid Layout (Vertical/Portrait Focus) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {mockReels.map((reel) => (
-          <Link key={reel.id} to={`/wedding-films/reels/edit/${reel.id}`} className="group relative bg-zinc-100 rounded-2xl overflow-hidden aspect-[9/16] shadow-sm hover:shadow-xl transition-all duration-300">
+        {loading ? (
+          <div className="col-span-full py-12 text-center text-zinc-500">Loading reels...</div>
+        ) : reels.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-zinc-500">No reels found.</div>
+        ) : reels.map((reel) => (
+          <Link key={reel._id || reel.id} to={`/films/reels/edit/${reel._id || reel.id}`} className="group relative bg-zinc-100 rounded-2xl overflow-hidden aspect-[9/16] shadow-sm hover:shadow-xl transition-all duration-300">
             <img src={reel.thumbnail} alt={reel.title} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity"></div>
             
@@ -48,7 +56,7 @@ const ReelsList = () => {
               }`}>
                 {reel.status}
               </span>
-              {reel.featured && (
+              {reel.trending && (
                 <div className="p-1.5 bg-black/40 backdrop-blur-md rounded-full">
                   <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 </div>
@@ -61,10 +69,6 @@ const ReelsList = () => {
                 {reel.category}
               </span>
               <h3 className="font-bold text-white text-sm leading-tight line-clamp-2">{reel.title}</h3>
-              <div className="flex items-center gap-3 text-white/80 text-xs font-medium">
-                <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {reel.views}</span>
-                <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {reel.likes}</span>
-              </div>
             </div>
           </Link>
         ))}

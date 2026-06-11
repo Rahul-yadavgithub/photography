@@ -1,21 +1,57 @@
 import { useState, useRef } from 'react';
-import { UploadCloud, X, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { useNotification } from '../../context/NotificationContext';
 
-const ImageUploader = ({ onImageSelect, currentImageUrl = null }) => {
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
+const ImageUploader = ({ onUploadSuccess, currentImageUrl = null, folder = 'images' }) => {
   const [preview, setPreview] = useState(currentImageUrl);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const { showSuccess, showError } = useNotification();
 
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     if (!file) return;
     
-    // Create preview
+    // Create local preview immediately
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
     
-    // Pass back to parent
-    if (onImageSelect) {
-      onImageSelect(file);
+    setIsUploading(true);
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    try {
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setPreview(data.url); // update preview to cloud URL
+        if (onUploadSuccess) onUploadSuccess(data.url);
+        showSuccess('Image uploaded successfully.');
+      } else {
+        throw new Error(data.message || 'Upload failed');
+      }
+    } catch (err) {
+      console.error('Image upload error:', err);
+      showError('Failed to upload image. Please try again.');
+      // Revert preview on failure if it was a new upload
+      if (preview === objectUrl) {
+        setPreview(currentImageUrl);
+      }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -44,10 +80,12 @@ const ImageUploader = ({ onImageSelect, currentImageUrl = null }) => {
     }
   };
 
-  const clearImage = () => {
+  const clearImage = async () => {
+    // If we want to delete from Cloudinary here, we would make a DELETE /api/upload call.
+    // For now, we'll just clear the local state and let the parent handle saving the empty string.
     setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (onImageSelect) onImageSelect(null);
+    if (onUploadSuccess) onUploadSuccess('');
   };
 
   return (
@@ -57,9 +95,16 @@ const ImageUploader = ({ onImageSelect, currentImageUrl = null }) => {
           <img 
             src={preview} 
             alt="Upload preview" 
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover transition-opacity ${isUploading ? 'opacity-50' : 'opacity-100'}`}
           />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          {isUploading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 text-white gap-2">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="text-sm font-medium drop-shadow-md">Uploading...</span>
+            </div>
+          )}
+          {!isUploading && (
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button 
               type="button"
               onClick={clearImage}
@@ -67,7 +112,8 @@ const ImageUploader = ({ onImageSelect, currentImageUrl = null }) => {
             >
               <X className="w-4 h-4" /> Remove Image
             </button>
-          </div>
+            </div>
+          )}
         </div>
       ) : (
         <div

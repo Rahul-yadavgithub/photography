@@ -1,29 +1,47 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, Phone, Mail, Calendar, Clock, Check, X, PhoneCall, MoreVertical } from 'lucide-react';
-import { mockInquiries, getUrgency, getStatusColor, getDaysRemaining } from './mockData';
+import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
 
 const InquiryListView = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [allInquiries, setAllInquiries] = useState([]);
 
   const categoryName = decodeURIComponent(categoryId);
 
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const response = await fetch(`${backendUrl}/api/bookings`);
+        const result = await response.json();
+        if (result.success) {
+          setAllInquiries(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error);
+      }
+    };
+    fetchBookings();
+  }, []);
+
   // Filter inquiries based on category, search, and status
   const inquiries = useMemo(() => {
-    return mockInquiries.filter(inq => {
-      if (inq.category !== categoryName) return false;
+    return allInquiries.filter(inq => {
+      const cat = inq.enquiryType || inq.category || 'Other';
+      if (cat !== categoryName) return false;
       if (statusFilter !== 'All' && inq.status !== statusFilter) return false;
       
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         return (
           inq.customerName.toLowerCase().includes(term) ||
-          inq.email.toLowerCase().includes(term) ||
-          inq.phone.includes(term) ||
-          inq.package.name.toLowerCase().includes(term)
+          (inq.email && inq.email.toLowerCase().includes(term)) ||
+          inq.mobileNumber.includes(term) ||
+          (inq.advancePlan && inq.advancePlan.toLowerCase().includes(term))
         );
       }
       return true;
@@ -31,7 +49,7 @@ const InquiryListView = () => {
       // Sort by urgency (days remaining) ascending
       return getDaysRemaining(a.eventDate) - getDaysRemaining(b.eventDate);
     });
-  }, [categoryName, searchTerm, statusFilter]);
+  }, [allInquiries, categoryName, searchTerm, statusFilter]);
 
   const formatDate = (dateString) => {
     return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(dateString));
@@ -96,9 +114,9 @@ const InquiryListView = () => {
               {/* Header: Package Name and Badges */}
               <div className="flex items-start justify-between mb-4">
                 <div className="pr-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1 block">Selected Package</span>
-                  <Link to={`/bookings/inquiry/${inquiry.id}`} className="text-lg font-bold text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                    {inquiry.package.name}
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1 block">Selected Plan</span>
+                  <Link to={`/bookings/inquiry/${inquiry._id}`} className="text-lg font-bold text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {inquiry.advancePlan || 'Custom Plan'}
                   </Link>
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -116,19 +134,21 @@ const InquiryListView = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-zinc-900 text-sm">{inquiry.customerName}</h4>
-                    <p className="text-xs text-zinc-500">ID: {inquiry.id}</p>
+                    <p className="text-xs text-zinc-500">Ref: {inquiry.bookingReference}</p>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-zinc-600">
                     <Phone className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>{inquiry.phone}</span>
+                    <span>{inquiry.mobileNumber}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-zinc-600">
-                    <Mail className="w-3.5 h-3.5 text-zinc-400" />
-                    <span className="truncate">{inquiry.email}</span>
-                  </div>
+                  {inquiry.email && (
+                    <div className="flex items-center gap-2 text-sm text-zinc-600">
+                      <Mail className="w-3.5 h-3.5 text-zinc-400" />
+                      <span className="truncate">{inquiry.email}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -154,12 +174,12 @@ const InquiryListView = () => {
               {/* Quick Actions */}
               <div className="flex items-center gap-2 mt-auto">
                 <button 
-                  onClick={() => navigate(`/bookings/inquiry/${inquiry.id}`)}
+                  onClick={() => navigate(`/bookings/inquiry/${inquiry._id}`)}
                   className="flex-1 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-colors shadow-sm"
                 >
                   View Details
                 </button>
-                <a href={`tel:${inquiry.phone}`} className="p-2.5 bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors shadow-sm">
+                <a href={`tel:${inquiry.mobileNumber}`} className="p-2.5 bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors shadow-sm">
                   <PhoneCall className="w-4 h-4" />
                 </a>
               </div>

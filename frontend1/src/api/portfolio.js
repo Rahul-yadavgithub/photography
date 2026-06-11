@@ -3,34 +3,73 @@ import { useApi } from '../hooks/useApi';
 export const usePortfolioApi = () => {
   const { fetchWithAuth } = useApi();
 
-  const getPortfolioPhotos = () => {
-    return fetchWithAuth('/guide/portfolio');
+  const getPortfolioAdmin = () => {
+    return fetchWithAuth('/admin/portfolio');
   };
 
-  const uploadPortfolioPhoto = (formData) => {
-    return fetchWithAuth('/guide/portfolio', {
-      method: 'POST',
-      body: formData,
+  const updateHeroSection = (data) => {
+    return fetchWithAuth('/admin/portfolio/hero', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   };
 
-  const deletePortfolioPhoto = (photoId) => {
-    return fetchWithAuth(`/guide/portfolio/${photoId}`, {
+  const updateDescriptionSection = (data) => {
+    return fetchWithAuth('/admin/portfolio/description', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  };
+
+  const addAchievement = (data) => {
+    return fetchWithAuth('/admin/portfolio/achievement', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  };
+
+  const updateAchievement = (id, data) => {
+    return fetchWithAuth(`/admin/portfolio/achievement/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  };
+
+  const deleteAchievement = (id) => {
+    return fetchWithAuth(`/admin/portfolio/achievement/${id}`, {
       method: 'DELETE',
     });
   };
 
-  const reorderPortfolioPhotos = (orderedIds) => {
-    return fetchWithAuth('/guide/portfolio/reorder', {
-      method: 'PATCH',
-      body: JSON.stringify({ orderedIds }),
+  const addCollection = (data) => {
+    return fetchWithAuth('/admin/portfolio/collection', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  };
+
+  const updateCollection = (id, data) => {
+    return fetchWithAuth(`/admin/portfolio/collection/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  };
+
+  const deleteCollection = (id) => {
+    return fetchWithAuth(`/admin/portfolio/collection/${id}`, {
+      method: 'DELETE',
     });
   };
 
   return {
-    getPortfolioPhotos,
-    uploadPortfolioPhoto,
-    deletePortfolioPhoto,
-    reorderPortfolioPhotos,
+    getPortfolioAdmin,
+    updateHeroSection,
+    updateDescriptionSection,
+    addAchievement,
+    updateAchievement,
+    deleteAchievement,
+    addCollection,
+    updateCollection,
+    deleteCollection,
   };
 };

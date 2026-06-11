@@ -36,19 +36,19 @@ const FilmsDashboard = () => {
         <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 lg:col-span-1">
           <h3 className="text-lg font-bold text-zinc-900 mb-6">Quick Actions</h3>
           <div className="space-y-3">
-            <Link to="/wedding-films/signature/create" className="w-full flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all group">
+            <Link to="/films/signature/create" className="w-full flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all group">
               <span className="font-semibold text-zinc-900">Upload Signature Film</span>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                 <Plus className="w-4 h-4 text-zinc-900" />
               </div>
             </Link>
-            <Link to="/wedding-films/reels/create" className="w-full flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all group">
+            <Link to="/films/reels/create" className="w-full flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all group">
               <span className="font-semibold text-zinc-900">Upload Reel</span>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                 <Plus className="w-4 h-4 text-zinc-900" />
               </div>
             </Link>
-            <Link to="/wedding-films/categories" className="w-full flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all group">
+            <Link to="/films/categories" className="w-full flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl transition-all group">
               <span className="font-semibold text-zinc-900">Manage Categories</span>
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:rotate-90 transition-transform">
                 <Settings className="w-4 h-4 text-zinc-900" />

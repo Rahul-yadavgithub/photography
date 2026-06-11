@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply font-sans antialiased text-gray-800 bg-gray-50 m-0 p-0;
+  html, body {
+    @apply font-sans antialiased text-gray-800 bg-gray-50 m-0 p-0 overflow-x-hidden;
   }
 }
 
@@ -24,4 +24,22 @@
 }
 .animate-modal {
   animation: modalPopup 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@layer components {
+  .premium-card {
+    @apply bg-white border border-gray-200/80 rounded-2xl shadow-sm transition-all duration-500 ease-out;
+  }
+  .premium-card:hover {
+    @apply -translate-y-1.5 scale-[1.01] shadow-2xl shadow-zinc-950/5 border-gray-300/80;
+  }
+  .premium-package-card {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .premium-package-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  }
 }

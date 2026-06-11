@@ -1,19 +1,107 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, UploadCloud, Video, Link as LinkIcon, Star, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Save, UploadCloud, Video, Link as LinkIcon, Star, Check, Trash2 } from 'lucide-react';
+import { useReelsApi, useFilmCategoriesApi } from '../../../api/films';
+import ImageUploader from '../../../components/shared/ImageUploader';
+import VideoUploader from '../../../components/shared/VideoUploader';
+import DeleteModal from '../../../components/shared/DeleteModal';
+import { useNotification } from '../../../context/NotificationContext';
 
 const ReelEditor = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { loading: saving, fetchReelById, createReel, updateReel, deleteReel } = useReelsApi();
+  const { fetchCategories } = useFilmCategoriesApi();
+  const { showSuccess, showError } = useNotification();
+
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     source: 'instagram',
     videoUrl: '',
     duration: '',
-    category: 'Bride Entry',
+    category: '',
     status: 'Draft',
-    featured: false,
-    displayOrder: 1
+    trending: false,
+    displayOrder: 1,
+    thumbnail: ''
   });
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setLoading(true);
+      const cats = await fetchCategories();
+      setCategories(cats || []);
+      
+      if (cats && cats.length > 0 && !formData.category) {
+        setFormData(prev => ({ ...prev, category: cats[0].name }));
+      }
+
+      if (id) {
+        const reel = await fetchReelById(id);
+        if (reel) {
+          setFormData({
+            title: reel.title || '',
+            source: reel.videoSource || 'instagram',
+            videoUrl: reel.videoUrl || '',
+            duration: reel.duration || '',
+            category: reel.category || '',
+            status: reel.status || 'Draft',
+            trending: reel.trending || false,
+            displayOrder: reel.displayOrder || 1,
+            thumbnail: reel.thumbnail || ''
+          });
+        }
+      }
+      setLoading(false);
+    };
+    loadInitialData();
+  }, [id, fetchCategories, fetchReelById]);
+
+  const handleSave = async () => {
+    try {
+      const dataToSave = {
+        ...formData,
+        videoSource: formData.source // map to model
+      };
+      
+      if (id) {
+        await updateReel(id, dataToSave);
+        showSuccess('Reel updated successfully.');
+      } else {
+        await createReel(dataToSave);
+        showSuccess('Reel created successfully.');
+      }
+      navigate('/films/reels');
+    } catch (err) {
+      console.error('Failed to save reel:', err);
+      showError('Failed to save reel.');
+    }
+  };
+
+  const confirmDelete = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteReel(id);
+      showSuccess('Reel deleted successfully.');
+      navigate('/films/reels');
+    } catch (err) {
+      console.error('Failed to delete reel:', err);
+      showError('Failed to delete reel.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center text-zinc-500">Loading editor...</div>;
 
   return (
     <div className="w-full max-w-[1000px] mx-auto pb-24 font-sans text-zinc-900 animate-in fade-in duration-500">
@@ -21,7 +109,7 @@ const ReelEditor = () => {
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
         <div className="flex items-center gap-5">
-          <Link to="/wedding-films/reels" className="p-2.5 text-zinc-500 hover:text-zinc-900 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-all shadow-sm hover:shadow">
+          <Link to="/films/reels" className="p-2.5 text-zinc-500 hover:text-zinc-900 bg-white border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-all shadow-sm hover:shadow">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -30,11 +118,21 @@ const ReelEditor = () => {
           </div>
         </div>
         <div className="flex items-center gap-4 w-full sm:w-auto">
+          {id && (
+            <button 
+              onClick={confirmDelete}
+              disabled={saving}
+              className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 text-sm font-bold rounded-xl hover:bg-red-100 transition-all shadow-sm disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" /> Delete
+            </button>
+          )}
           <button 
-            onClick={() => navigate('/wedding-films/reels')}
-            className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50"
           >
-            <Save className="w-4 h-4" /> Save Reel
+            <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Reel'}
           </button>
         </div>
       </div>
@@ -68,14 +166,9 @@ const ReelEditor = () => {
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                     className="w-full px-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 outline-none transition-all text-zinc-900 text-base appearance-none cursor-pointer"
                   >
-                    <option>Bride Entry</option>
-                    <option>Haldi</option>
-                    <option>Mehendi</option>
-                    <option>Wedding Teaser</option>
-                    <option>Pre-Wedding Teaser</option>
-                    <option>Reception Highlight</option>
-                    <option>Drone Reel</option>
-                    <option>Couple Reel</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat.name}>{cat.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -129,14 +222,16 @@ const ReelEditor = () => {
                 </div>
               </div>
             ) : (
-              <div className="w-full h-48 border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-400 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer">
-                <div className="p-4 bg-white rounded-full shadow-sm">
-                  <UploadCloud className="w-6 h-6 text-zinc-600" />
-                </div>
-                <div className="text-center">
-                  <span className="font-bold text-zinc-900">Click to upload vertical video</span>
-                  <p className="text-xs text-zinc-500 mt-1">MP4, WebM (9:16 aspect ratio) up to 100MB</p>
-                </div>
+              <div className="space-y-4">
+                <VideoUploader 
+                  folder="films/reels"
+                  onUploadSuccess={(url) => setFormData({...formData, videoUrl: url})}
+                />
+                {formData.videoUrl && (
+                  <div className="w-full aspect-[9/16] rounded-xl overflow-hidden border border-zinc-200 bg-black max-w-sm mx-auto">
+                    <video src={formData.videoUrl} controls className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -149,24 +244,28 @@ const ReelEditor = () => {
           {/* Vertical Thumbnail */}
           <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-900 mb-4">Vertical Thumbnail</h3>
-            <div className="w-full aspect-[9/16] border-2 border-dashed border-zinc-300 rounded-xl bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-400 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden group">
-              <div className="p-4 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-6 h-6 text-zinc-600" />
+            <ImageUploader 
+              folder="reels"
+              onUploadSuccess={(url) => setFormData({...formData, thumbnail: url})}
+            />
+            {formData.thumbnail && (
+              <div className="mt-4 w-full aspect-[9/16] rounded-xl overflow-hidden border border-zinc-200">
+                <img src={formData.thumbnail} className="w-full h-full object-cover" alt="Thumbnail Preview" />
               </div>
-              <div className="text-center px-4">
-                <span className="font-bold text-zinc-900 block">Upload cover</span>
-                <p className="text-xs text-zinc-500 mt-1">1080x1920px recommended</p>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-900 mb-4">Publishing Status</h3>
             <div className="space-y-3">
               {['Published', 'Draft', 'Archived'].map((status) => (
-                <label key={status} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                  formData.status === status ? 'border-zinc-900 bg-zinc-50' : 'border-transparent hover:bg-zinc-50'
-                }`}>
+                <label 
+                  key={status} 
+                  onClick={() => setFormData({...formData, status})}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    formData.status === status ? 'border-zinc-900 bg-zinc-50' : 'border-transparent hover:bg-zinc-50'
+                  }`}
+                >
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     formData.status === status ? 'border-zinc-900 bg-zinc-900' : 'border-zinc-300 bg-white'
                   }`}>
@@ -196,10 +295,29 @@ const ReelEditor = () => {
                 <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zinc-900 shadow-inner"></div>
               </label>
             </div>
+            
+            <div className="mt-5 space-y-2">
+              <label className="text-sm font-bold text-zinc-700">Display Order</label>
+              <input 
+                type="number" 
+                value={formData.displayOrder}
+                onChange={(e) => setFormData({...formData, displayOrder: e.target.value})}
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white outline-none transition-all text-zinc-900 font-medium" 
+              />
+            </div>
           </div>
         </div>
 
       </div>
+
+      <DeleteModal 
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+        title="Delete Reel?"
+        message="Are you sure you want to permanently remove this reel? This action cannot be undone."
+      />
     </div>
   );
 };

@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.8",
+    "@clerk/localizations": "^4.7.2",
+    "date-fns": "^4.4.0",
     "lucide-react": "^1.17.0",
     "react-router-dom": "^7.17.0"
   }

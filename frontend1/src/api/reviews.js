@@ -4,20 +4,26 @@ export const useReviewsApi = () => {
   const { fetchWithAuth } = useApi();
 
   const getReviews = () => {
-    return fetchWithAuth('/guide/reviews');
+    return fetchWithAuth('/admin/reviews');
   };
 
   const approveReview = (reviewId) => {
-    return fetchWithAuth(`/guide/reviews/${reviewId}/approve`, {
+    return fetchWithAuth(`/admin/reviews/${reviewId}/approve`, {
       method: 'PATCH',
       body: JSON.stringify({}),
     });
   };
 
   const rejectReview = (reviewId) => {
-    return fetchWithAuth(`/guide/reviews/${reviewId}/reject`, {
+    return fetchWithAuth(`/admin/reviews/${reviewId}/reject`, {
       method: 'PATCH',
       body: JSON.stringify({}),
+    });
+  };
+
+  const deleteReview = (reviewId) => {
+    return fetchWithAuth(`/admin/reviews/${reviewId}`, {
+      method: 'DELETE',
     });
   };
 
@@ -25,5 +31,6 @@ export const useReviewsApi = () => {
     getReviews,
     approveReview,
     rejectReview,
+    deleteReview,
   };
 };

@@ -1,22 +1,22 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Film, PlaySquare, FolderTree, Star, Video, LineChart, LayoutDashboard } from 'lucide-react';
+import { Film, PlaySquare, FolderTree, Star, Video, LineChart, LayoutDashboard, Camera, Clapperboard, TrendingUp } from 'lucide-react';
 
 const WeddingFilmsLayout = () => {
   const tabs = [
-    { name: 'Dashboard', path: '/wedding-films', icon: LayoutDashboard, exact: true },
-    { name: 'Signature Films', path: '/wedding-films/signature', icon: Film },
-    { name: 'Reels & Shorts', path: '/wedding-films/reels', icon: PlaySquare },
-    { name: 'Categories', path: '/wedding-films/categories', icon: FolderTree },
-    { name: 'Featured Collections', path: '/wedding-films/collections', icon: Star },
-    { name: 'Behind The Scenes', path: '/wedding-films/bts', icon: Video },
-    { name: 'Analytics', path: '/wedding-films/analytics', icon: LineChart },
+    { id: 'dashboard', name: 'Dashboard', path: '/films', icon: LayoutDashboard, exact: true },
+    { id: 'categories', name: 'Categories', path: '/films/categories', icon: FolderTree },
+    { id: 'signature', name: 'Signature Films', path: '/films/signature', icon: Video },
+    { id: 'reels', name: 'Reels & Shorts', path: '/films/reels', icon: PlaySquare },
+    { id: 'bts', name: 'BTS Gallery', path: '/films/bts', icon: Camera },
+    { id: 'collections', name: 'Collections', path: '/films/collections', icon: Clapperboard },
+    { id: 'analytics', name: 'Analytics', path: '/films/analytics', icon: TrendingUp },
   ];
 
   return (
     <div className="w-full max-w-[1400px] mx-auto pb-24 font-sans text-zinc-900">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Wedding Films</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Films Management</h1>
         <p className="text-sm text-zinc-500 font-medium mt-1">Manage all your cinematic content and video categories.</p>
       </div>
 

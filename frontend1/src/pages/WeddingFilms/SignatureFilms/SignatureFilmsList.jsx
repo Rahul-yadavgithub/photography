@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, MoreVertical, Edit2, Trash2, Eye, Star, Copy, Archive } from 'lucide-react';
+import { Plus, Search, MoreVertical, Edit2, Trash2, Eye, Star, Copy, Archive, PlaySquare } from 'lucide-react';
+import { useFilmsApi } from '../../../api/films';
+import DeleteModal from '../../../components/shared/DeleteModal';
+import { useNotification } from '../../../context/NotificationContext';
 
-const mockFilms = [
-  { id: 1, title: 'Priya & Rahul Cinematic Wedding', duration: '15:42', category: 'Wedding Film', status: 'Published', views: '12.4k', featured: true, thumbnail: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=300' },
-  { id: 2, title: 'Aman & Neha Pre-Wedding Story', duration: '04:20', category: 'Pre-Wedding Film', status: 'Published', views: '8.2k', featured: false, thumbnail: 'https://images.unsplash.com/photo-1583939008082-f7b764b88d4d?auto=format&fit=crop&q=80&w=300' },
-  { id: 3, title: 'Destination Udaipur | Rohan & Aditi', duration: '22:15', category: 'Destination Wedding', status: 'Draft', views: '-', featured: false, thumbnail: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80&w=300' },
-];
-
-const ActionMenu = () => {
+const ActionMenu = ({ filmId, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
@@ -23,17 +20,11 @@ const ActionMenu = () => {
       
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-xl shadow-lg py-1 z-10 animate-in fade-in zoom-in-95 duration-200">
-          <Link to="/wedding-films/signature/edit/1" className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 w-full text-left">
+          <Link to={`/films/signature/edit/${filmId}`} className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 w-full text-left">
             <Edit2 className="w-4 h-4" /> Edit Film
           </Link>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 w-full text-left">
-            <Copy className="w-4 h-4" /> Duplicate
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 w-full text-left">
-            <Archive className="w-4 h-4" /> Archive
-          </button>
           <div className="h-px bg-zinc-100 my-1"></div>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left">
+          <button onClick={() => onDelete(filmId)} className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left">
             <Trash2 className="w-4 h-4" /> Delete Film
           </button>
         </div>
@@ -43,6 +34,42 @@ const ActionMenu = () => {
 };
 
 const SignatureFilmsList = () => {
+  const { loading, error, fetchFilms, deleteFilm } = useFilmsApi();
+  const [films, setFilms] = useState([]);
+  
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, filmId: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { showSuccess, showError } = useNotification();
+
+  const loadFilms = async () => {
+    const data = await fetchFilms();
+    setFilms(data || []);
+  };
+
+  useEffect(() => {
+    loadFilms();
+  }, [fetchFilms]);
+
+  const confirmDelete = (id) => {
+    setDeleteModal({ isOpen: true, filmId: id });
+  };
+
+  const handleDeleteFilm = async () => {
+    if (!deleteModal.filmId) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteFilm(deleteModal.filmId);
+      showSuccess('Film deleted successfully.');
+      loadFilms();
+    } catch (error) {
+      console.error('Failed to delete film:', error);
+      showError('Failed to delete film.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModal({ isOpen: false, filmId: null });
+    }
+  };
   return (
     <div className="animate-in fade-in duration-500">
       
@@ -58,7 +85,7 @@ const SignatureFilmsList = () => {
         </div>
         
         <Link 
-          to="/wedding-films/signature/create" 
+          to="/films/signature/create" 
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
         >
           <Plus className="w-5 h-5" />
@@ -80,8 +107,16 @@ const SignatureFilmsList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
-              {mockFilms.map((film) => (
-                <tr key={film.id} className="hover:bg-zinc-50/50 transition-colors group">
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-zinc-500">Loading films...</td>
+                </tr>
+              ) : films.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-zinc-500">No films found.</td>
+                </tr>
+              ) : films.map((film) => (
+                <tr key={film._id || film.id} className="hover:bg-zinc-50/50 transition-colors group">
                   <td className="p-4 pl-6">
                     <div className="flex items-center gap-4">
                       <div className="w-24 h-14 bg-zinc-100 rounded-lg overflow-hidden shrink-0 relative">
@@ -125,7 +160,7 @@ const SignatureFilmsList = () => {
                     </span>
                   </td>
                   <td className="p-4 pr-6 text-right">
-                    <ActionMenu />
+                    <ActionMenu filmId={film._id || film.id} onDelete={confirmDelete} />
                   </td>
                 </tr>
               ))}
@@ -134,6 +169,14 @@ const SignatureFilmsList = () => {
         </div>
       </div>
       
+      <DeleteModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, filmId: null })}
+        onConfirm={handleDeleteFilm}
+        isDeleting={isDeleting}
+        title="Delete Signature Film?"
+        message="Are you sure you want to permanently delete this signature film? This action cannot be undone."
+      />
     </div>
   );
 };

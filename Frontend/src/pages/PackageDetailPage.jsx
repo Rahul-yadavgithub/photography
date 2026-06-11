@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getPackageById } from '../api/packageService';
-import BookingModal from '../components/BookingModal';
 import { Camera, Video, Image as ImageIcon, Film, BookOpen, Navigation, Play, Plus, Check } from 'lucide-react';
+import { useIntent } from '../context/IntentContext';
+import EditorialHero from '../components/common/EditorialHero';
 
 const ICON_MAP = {
   camera: Camera,
@@ -18,7 +19,7 @@ function PackageDetailPage() {
   const { id } = useParams();
   const [pkg, setPkg] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isBookingModalOpen, setBookingModalOpen] = useState(false);
+  const { executeProtectedAction } = useIntent();
 
   useEffect(() => {
     const fetchPkg = async () => {
@@ -55,39 +56,31 @@ function PackageDetailPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#f8fafc] font-sans pb-32">
-      
-      {/* 1. Hero Section */}
-      <section className="relative w-full h-[80vh] md:h-[90vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={pkg.media.banner || pkg.media.thumbnail} alt={pkg.name} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"></div>
-        </div>
-        
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20">
-          <span className="inline-block px-4 py-1.5 mb-6 text-sm font-bold uppercase tracking-widest text-white/80 border border-white/20 rounded-full backdrop-blur-md">
-            {pkg.category}
-          </span>
-          <h1 className="text-5xl md:text-7xl font-serif text-white mb-6 drop-shadow-lg">{pkg.name}</h1>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed font-light drop-shadow-md max-w-3xl mx-auto">
-            {pkg.fullStory || pkg.shortStory}
-          </p>
-          
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6">
-            <button 
-              onClick={() => setBookingModalOpen(true)}
-              className="w-full sm:w-auto px-10 py-4 bg-white text-gray-900 font-bold tracking-wide rounded-full hover:bg-gray-100 hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)]"
-            >
-              Book Consultation
-            </button>
-            <a href="#experiences" className="w-full sm:w-auto px-10 py-4 bg-transparent text-white border border-white/30 font-bold tracking-wide rounded-full hover:bg-white/10 transition-all backdrop-blur-sm">
-              Discover Experiences
-            </a>
-          </div>
-        </div>
-      </section>
+
+      <EditorialHero
+        breadcrumbs={[
+          { label: 'Packages', path: '/packages' },
+          { label: pkg.category, path: `/category/${pkg.category.toLowerCase().replace(/\s+/g, '-')}` },
+          { label: pkg.name }
+        ]}
+        label={pkg.category}
+        title={pkg.name}
+        description={pkg.shortDesc || pkg.description}
+        action={
+          <button
+            onClick={() => executeProtectedAction('OPEN_BOOKING_FLOW', { category: pkg.category, name: pkg.name, features: pkg.features.map(f => f.title) })}
+            className="px-6 py-3 bg-white text-gray-900 font-bold tracking-widest uppercase text-xs rounded-full hover:bg-gray-100 hover:scale-105 transition-all shadow-lg flex items-center gap-2"
+          >
+            Book Consultation <Plus className="w-4 h-4" />
+          </button>
+        }
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      </div>
 
       {/* 2. Included Experiences Section */}
-      <section id="experiences" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section id="experiences" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-serif text-gray-900 mb-4">Included Experiences</h2>
           <div className="w-16 h-0.5 bg-[#ea580c] mx-auto"></div>
@@ -97,7 +90,7 @@ function PackageDetailPage() {
           {pkg.features.map(feature => {
             const Icon = ICON_MAP[feature.iconKey] || Check;
             return (
-              <div key={feature.id} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group">
+              <div key={feature.id} className="premium-card p-8 group">
                 <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                   <Icon className="w-6 h-6 text-[#ea580c]" />
                 </div>
@@ -145,13 +138,13 @@ function PackageDetailPage() {
             {pkg.addOns.map(addon => {
               const Icon = ICON_MAP[addon.iconKey] || Plus;
               return (
-                <div key={addon.id} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:border-gray-300 transition-all flex flex-col h-full">
+                <div key={addon.id} className="premium-card p-8 flex flex-col h-full">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
                       <Icon className="w-5 h-5 text-gray-700" />
                     </div>
                     {pkg.showPricing !== false && addon.price && (
-                      <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-bold rounded-full">+${addon.price}</span>
+                      <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-bold rounded-full">+₹{addon.price}</span>
                     )}
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{addon.name}</h3>
@@ -169,26 +162,19 @@ function PackageDetailPage() {
           <div className="text-center sm:text-left">
             <h4 className="text-xl font-serif text-gray-900">{pkg.name}</h4>
             {pkg.showPricing !== false ? (
-              <p className="text-gray-500 font-medium">Starting at <span className="font-bold text-gray-900">${pkg.price}</span></p>
+              <p className="text-gray-500 font-medium">Starting at <span className="font-bold text-gray-900">₹{pkg.price}</span></p>
             ) : (
               <p className="text-gray-500 font-medium">Contact for Custom Quote</p>
             )}
           </div>
-          <button 
-            onClick={() => setBookingModalOpen(true)}
+          <button
+            onClick={() => executeProtectedAction('OPEN_BOOKING_FLOW', { category: pkg.category, name: pkg.name, features: pkg.features.map(f => f.title) })}
             className="w-full sm:w-auto px-8 py-4 bg-[#ea580c] text-white font-bold rounded-full hover:bg-[#c2410c] hover:-translate-y-1 transition-all shadow-lg"
           >
             Check Availability
           </button>
         </div>
       </div>
-
-      <BookingModal 
-        isOpen={isBookingModalOpen} 
-        onClose={() => setBookingModalOpen(false)} 
-        packageData={{ name: pkg.name, features: pkg.features.map(f => f.title) }} 
-      />
-
     </div>
   );
 }

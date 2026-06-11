@@ -1,9 +1,61 @@
-import React from 'react';
-import { UploadCloud, Trash2, GripVertical } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { UploadCloud, Trash2, GripVertical, Loader2 } from 'lucide-react';
+import { useMediaApi } from '../../api/media';
 
 const GalleryUploader = ({ images, onUpload, onDelete, onReorder }) => {
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const { uploadImage } = useMediaApi();
+
+  const handleClick = () => {
+    if (!isUploading) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const uploadedUrls = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const data = await uploadImage(file, 'packages/gallery');
+        if (data.success && data.url) {
+          uploadedUrls.push(data.url);
+        }
+      } catch (error) {
+        console.error('Gallery upload error for file', file.name, error);
+      }
+      setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+    }
+
+    if (uploadedUrls.length > 0) {
+      onUpload(uploadedUrls);
+    }
+
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+      <input 
+        type="file" 
+        multiple 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+        accept="image/jpeg, image/png, image/webp" 
+      />
+
       <div className="mb-5 flex justify-between items-end">
         <div>
           <h4 className="text-lg font-bold text-zinc-900">Package Gallery</h4>
@@ -28,10 +80,18 @@ const GalleryUploader = ({ images, onUpload, onDelete, onReorder }) => {
             </div>
           </div>
         ))}
-        <button onClick={onUpload} className="aspect-square flex flex-col items-center justify-center gap-2 bg-zinc-50 border-2 border-dashed border-zinc-200 hover:border-zinc-400 hover:bg-zinc-100 rounded-xl transition-all text-zinc-400 group">
-          <UploadCloud className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-          <span className="text-xs font-bold text-zinc-500">Add Image</span>
-        </button>
+        
+        {isUploading ? (
+          <div className="aspect-square flex flex-col items-center justify-center gap-2 bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-xl">
+            <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
+            <span className="text-xs font-bold text-zinc-500">{uploadProgress}%</span>
+          </div>
+        ) : (
+          <button onClick={handleClick} className="aspect-square flex flex-col items-center justify-center gap-2 bg-zinc-50 border-2 border-dashed border-zinc-200 hover:border-zinc-400 hover:bg-zinc-100 rounded-xl transition-all text-zinc-400 group">
+            <UploadCloud className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+            <span className="text-xs font-bold text-zinc-500">Add Image</span>
+          </button>
+        )}
       </div>
     </div>
   );

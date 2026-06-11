@@ -26,7 +26,7 @@ const Step4Preview = ({ formData }) => {
             <div className="pt-4 border-t border-zinc-100 flex justify-between items-center">
               <div>
                 <span className="text-xs font-bold text-zinc-400 block">Starting at</span>
-                <span className="text-lg font-bold text-zinc-900">$5,000</span>
+                <span className="text-lg font-bold text-zinc-900">₹5,000</span>
               </div>
               <button className="px-4 py-2 bg-zinc-900 text-white text-sm font-bold rounded-xl">Book Now</button>
             </div>
