@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { UploadCloud, X, Loader2 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api` : 'http://localhost:8000/api';
 
 const CloudinaryMultipleUploader = ({ onUploadSuccess, currentUrls = [], folder = 'uploads' }) => {
   const [urls, setUrls] = useState(currentUrls || []);
