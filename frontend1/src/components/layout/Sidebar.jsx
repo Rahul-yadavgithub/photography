@@ -11,7 +11,8 @@ import {
   Settings,
   Users,
   FolderTree,
-  Store
+  Store,
+  Inbox
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -24,8 +25,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Shoot Inspiration', path: '/shoot', icon: Camera },
     { name: 'Portfolio', path: '/portfolio', icon: ShoppingBag },
     { name: 'Store Catalog', path: '/store-admin', icon: Store },
+    { name: 'Store Orders', path: '/store-orders', icon: Inbox },
     { name: 'Testimonials', path: '/testimonials', icon: Star },
-    { name: 'Bookings & Inquiries', path: '/bookings', icon: CalendarCheck },
+    { name: 'Bookings', path: '/bookings', icon: CalendarCheck },
     { name: 'Website Content', path: '/content', icon: Globe },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];

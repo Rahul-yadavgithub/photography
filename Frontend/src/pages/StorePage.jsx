@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getStoreCategories, getStoreProducts } from '../api/storeService';
+import useSEO from '../hooks/useSEO';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -176,9 +177,9 @@ const FeaturedProducts = ({ products }) => (
 
                   {/* Specifications badges */}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {product.albumSize && <span className="text-[11px] font-bold bg-zinc-100 border border-zinc-200 text-black px-2.5 py-1 rounded-md">{product.albumSize}</span>}
-                    {product.albumType && <span className="text-[11px] font-bold bg-zinc-100 border border-zinc-200 text-black px-2.5 py-1 rounded-md">{product.albumType}</span>}
-                    {product.pageCount && <span className="text-[11px] font-bold bg-zinc-100 border border-zinc-200 text-black px-2.5 py-1 rounded-md">{product.pageCount}</span>}
+                    {product.specifications && Object.values(product.specifications).slice(0, 3).map((val, idx) => (
+                      val ? <span key={idx} className="text-[11px] font-bold bg-zinc-100 border border-zinc-200 text-black px-2.5 py-1 rounded-md">{val}</span> : null
+                    ))}
                   </div>
                 </div>
 
@@ -216,6 +217,7 @@ const FeaturedProducts = ({ products }) => (
 );
 
 export default function StorePage() {
+  useSEO();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);

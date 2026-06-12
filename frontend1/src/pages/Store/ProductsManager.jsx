@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStoreApi } from '../../api/store';
 import { useNotification } from '../../context/NotificationContext';
-import { Plus, Edit2, Trash2, Image as ImageIcon, Star, ShoppingBag, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Star, ShoppingBag, Eye, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ProductsManager = () => {
@@ -10,6 +10,7 @@ const ProductsManager = () => {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, productId: null });
 
   const fetchProducts = async () => {
     try {
@@ -27,11 +28,16 @@ const ProductsManager = () => {
     fetchProducts();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+  const handleDelete = (id) => {
+    setDeleteConfirm({ show: true, productId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.productId) return;
     try {
-      await deleteProduct(id);
+      await deleteProduct(deleteConfirm.productId);
       showSuccess('Product deleted');
+      setDeleteConfirm({ show: false, productId: null });
       fetchProducts();
     } catch (err) {
       showError('Failed to delete product');
@@ -116,6 +122,37 @@ const ProductsManager = () => {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-zinc-900 mb-2">Delete Product?</h3>
+              <p className="text-zinc-500 mb-6">
+                Are you sure you want to delete this product? This action cannot be undone and it will be permanently removed from your store.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setDeleteConfirm({ show: false, productId: null })}
+                  className="px-5 py-2.5 rounded-xl font-bold text-zinc-600 hover:bg-zinc-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDelete}
+                  className="px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                >
+                  Yes, Delete Product
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

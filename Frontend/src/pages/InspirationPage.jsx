@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, ChevronDown, Play, Maximize2, Camera, Clock, Info, Check, X, Bookmark, Film } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getCategories, getAllPublishedPoses, getPublishedPosesByCategory } from '../api/inspirationService';
+import useSEO from '../hooks/useSEO';
 
 // --- DATA ---
 // Static Data removed. Using dynamic data from API.
@@ -232,6 +233,7 @@ const CtaSection = () => (
 // --- MAIN COMPONENT ---
 
 export default function InspirationPage() {
+  useSEO();
   const [savedItems, setSavedItems] = useState([]);
   const [modalPose, setModalPose] = useState(null);
 

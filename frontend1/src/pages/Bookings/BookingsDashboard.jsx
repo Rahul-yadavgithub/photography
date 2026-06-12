@@ -15,7 +15,8 @@ const BookingsDashboard = () => {
         const response = await fetch(`${backendUrl}/api/bookings`);
         const result = await response.json();
         if (result.success) {
-          setInquiries(result.data);
+          const serviceBookings = result.data.filter(b => b.inquiryType === 'service' || !b.inquiryType);
+          setInquiries(serviceBookings);
         }
       } catch (error) {
         console.error("Failed to fetch bookings:", error);

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { Play, Camera, Star, Award, ChevronRight, Video, FileImage, ShieldCheck, MapPin, Heart, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getPortfolio } from '../api/portfolioService';
+import useSEO from '../hooks/useSEO';
 
 // --- COMPONENTS ---
 
@@ -14,7 +16,101 @@ const SectionHeading = ({ title, subtitle, centered = true, dark = true }) => (
 );
 
 // 1. Hero Section (Premium 3D Showcase / Centered Fallback)
-const HeroSection = ({ config }) => {
+const FloatingShowcase = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [images]);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useTransform(y, [-0.5, 0.5], [5, -5]);
+  const rotateY = useTransform(x, [-0.5, 0.5], [-5, 5]);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  const currentImage = images?.[currentIndex];
+
+  if (!currentImage) return null;
+
+  return (
+    <div 
+      className="relative w-full h-full flex items-center justify-center perspective-[1200px] z-10"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Decorative Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(8)].map((_, i) => (
+          <div 
+            key={i} 
+            className="absolute w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#ea580c]/60 shadow-[0_0_8px_rgba(234,88,12,0.8)] animate-pulse"
+            style={{
+              top: `${10 + Math.random() * 80}%`,
+              left: `${10 + Math.random() * 80}%`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+              animationDelay: `${Math.random() * 2}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="relative w-[75%] sm:w-[60%] md:w-[75%] lg:w-[65%] aspect-[4/5] rounded-[32px] group cursor-pointer animate-float-premium"
+      >
+        {/* Layer 1: Cinematic Glow Background */}
+        <div className="absolute inset-[-20px] rounded-[40px] bg-gradient-to-br from-[#ea580c]/30 to-amber-500/10 opacity-50 group-hover:opacity-100 blur-[30px] transition-opacity duration-700 animate-pulse-slow pointer-events-none"></div>
+
+        {/* Layer 2: Glass Frame */}
+        <div className="absolute inset-0 rounded-[32px] border-[1.5px] border-white/20 bg-white/5 backdrop-blur-[20px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6),0_0_40px_rgba(212,164,90,0.2)] overflow-hidden group-hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8),0_0_60px_rgba(212,164,90,0.35)] transition-shadow duration-500">
+          
+          {/* Layer 3: Rotating Images */}
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentIndex}
+              src={currentImage}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-[2000ms] ease-out"
+              alt="Showcase"
+            />
+          </AnimatePresence>
+
+          {/* Subtle Inner Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const HeroSection = ({ config, collections }) => {
   if (!config) {
     return (
       <section className="relative w-full h-[320px] md:h-[400px] bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center text-center px-6 z-10 pt-20">
@@ -39,12 +135,25 @@ const HeroSection = ({ config }) => {
   return (
     <section className="relative w-full h-[500px] md:h-[550px] lg:h-[600px] bg-[#0a0a0a] overflow-hidden flex items-center pt-16 md:pt-20">
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
+        @keyframes float-premium {
+          0%, 100% { transform: translateY(-12px); }
+          50% { transform: translateY(12px); }
         }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.4; transform: scale(0.95); }
+          50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        .animate-float-premium {
+          animation: float-premium 8s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 8s ease-in-out infinite;
+        }
+        .perspective-[1200px] {
+          perspective: 1200px;
+        }
+        .preserve-3d {
+          transform-style: preserve-3d;
         }
       `}</style>
       
@@ -79,17 +188,15 @@ const HeroSection = ({ config }) => {
           </p>
         </div>
 
-        {/* Right Column: Floating Foreground Subject */}
-        <div className="w-full md:w-1/2 flex justify-center md:justify-end items-end h-[55%] md:h-[80%] lg:h-[90%] relative mt-6 md:mt-0 z-10">
-          <img
-            src={config.heroImage}
-            alt="Portfolio Subject"
-            loading="lazy"
-            className="max-h-full max-w-full object-contain animate-float"
-            style={{
-              filter: 'drop-shadow(0 20px 50px rgba(0,0,0,0.3))'
-            }}
-          />
+        {/* Right Column: Premium Floating Glass Card */}
+        <div className="w-full md:w-1/2 flex justify-center items-center h-[65%] md:h-full relative mt-12 md:mt-0 z-10">
+          {config.heroImage ? (
+            <FloatingShowcase images={[config.heroImage]} />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-zinc-600 font-medium tracking-widest uppercase text-xs">No Hero Image Available</span>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -215,6 +322,7 @@ const AwardsSection = ({ achievements }) => {
 )};
 
 export default function PortfolioPage() {
+  useSEO();
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -240,7 +348,7 @@ export default function PortfolioPage() {
         </div>
       ) : (
         <>
-          <HeroSection config={portfolio?.heroSection} />
+          <HeroSection config={portfolio?.heroSection} collections={portfolio?.collections} />
           <AboutSection config={portfolio?.descriptionSection} />
           <StatsSection config={portfolio?.descriptionSection} />
           <AwardsSection achievements={portfolio?.achievements} />

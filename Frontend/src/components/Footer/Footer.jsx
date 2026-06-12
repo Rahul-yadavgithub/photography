@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FaInstagram, FaYoutube, FaFacebook, FaWhatsapp } from 'react-icons/fa';
 import JourneyInNumbers from '../JourneyInNumbers';
 
@@ -11,21 +12,41 @@ function Footer() {
       
       {/* Main Footer Content */}
       <div className="bg-[#0F172A] pt-24 pb-12 px-6 md:px-12 lg:px-16 w-full">
-        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8 mb-20">
+        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr] gap-12 lg:gap-[60px] mb-20">
           
           {/* 1. Brand Information */}
-          <div className="lg:col-span-1 flex flex-col">
-            <div className="mb-6 inline-block w-max relative group cursor-pointer">
-              <div className="relative flex items-center justify-center rounded-full transition-all duration-700 hover:scale-105 hover:-rotate-3 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)]">
-                <img 
-                  src="https://res.cloudinary.com/dzbliymin/image/upload/v1781240581/logo-Photoroom-removebg-preview_uojyrj.png" 
-                  alt="Shubham Studio Logo" 
-                  className="w-24 h-24 object-cover rounded-full border-[3px] border-[#D4AF37]"
-                />
-                {/* Premium ring animation */}
-                <div className="absolute -inset-2 rounded-full border border-[#D4AF37] opacity-0 group-hover:animate-[spin_4s_linear_infinite] group-hover:opacity-30 transition-opacity duration-700"></div>
-                <div className="absolute inset-0 rounded-full bg-[#D4AF37] opacity-0 group-hover:animate-ping group-hover:opacity-10 transition-opacity duration-700"></div>
-              </div>
+          <div className="flex flex-col">
+            <div className="mb-8 inline-block">
+              <Link to="/" className="flex items-center gap-4 cursor-pointer group py-1 shrink-0">
+                {/* 1. Circular Monogram Logo */}
+                <div className="relative flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:rotate-[3deg]">
+                  <img 
+                    src="https://res.cloudinary.com/dzbliymin/image/upload/v1781267132/logosls_vcamss.jpg" 
+                    alt="Shubham Studio Logo" 
+                    className="w-[clamp(48px,12vw,80px)] h-[clamp(48px,12vw,80px)] shrink-0 object-cover rounded-full border-[2px] border-[#C9A24E]"
+                  />
+                  {/* Premium subtle glow on hover */}
+                  <div className="absolute inset-0 rounded-full bg-[#C9A24E] opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+                </div>
+
+                {/* 2. Gold Vertical Line */}
+                <div className="flex items-center h-12">
+                  <div className="w-[1px] h-full bg-[#C9A24E] group-hover:shadow-[0_0_8px_rgba(201,162,78,0.6)] transition-shadow duration-300"></div>
+                </div>
+
+                {/* Text Area */}
+                <div className="flex items-center gap-[clamp(4px,1vw,8px)] shrink-0 whitespace-nowrap">
+                  {/* 3. SHUBHAM Text */}
+                  <span className="font-serif text-[clamp(16px,4.5vw,24px)] tracking-[2px] text-white group-hover:brightness-110 transition-all duration-300">
+                    SHUBHAM
+                  </span>
+                  
+                  {/* 4. STUDIO Text */}
+                  <span className="font-serif text-[clamp(16px,4.5vw,24px)] tracking-[2px] text-[#C9A24E] group-hover:brightness-110 transition-all duration-300">
+                    STUDIO
+                  </span>
+                </div>
+              </Link>
             </div>
             <p className="text-[#94A3B8] text-sm leading-relaxed mb-8">
               Capturing timeless moments through cinematic wedding films and premium photography experiences.
@@ -47,23 +68,23 @@ function Footer() {
           <div className="flex flex-col">
             <h4 className="text-xs font-bold tracking-[0.2em] text-[#D4AF37] uppercase mb-8">Our Services</h4>
             <ul className="flex flex-col gap-4">
-              {['Wedding Photography', 'Wedding Films', 'Pre-Wedding Shoots', 'Couple Photography', 'Tourist Photography', 'Corporate Events', 'Store Opening Coverage'].map(item => (
+              {['Wedding Photography', 'Wedding Films', 'Pre-Wedding Shoots', 'Couple Photography', 'Corporate Events'].map(item => (
                 <li key={item}><Link to="#" className="text-[#94A3B8] text-sm hover:text-white transition-colors">{item}</Link></li>
               ))}
             </ul>
           </div>
 
-          {/* 3. Explore */}
+          {/* 3. Quick Links */}
           <div className="flex flex-col">
-            <h4 className="text-xs font-bold tracking-[0.2em] text-[#D4AF37] uppercase mb-8">Explore</h4>
+            <h4 className="text-xs font-bold tracking-[0.2em] text-[#D4AF37] uppercase mb-8">Quick Links</h4>
             <ul className="flex flex-col gap-4">
               {[
                 { name: 'Packages', path: '/packages' },
-                { name: 'Wedding Films', path: '/wedding-films' },
+                { name: 'Films', path: '/films' },
                 { name: 'Shoot Inspiration', path: '/shoot' },
                 { name: 'Portfolio', path: '/portfolio' },
-                { name: 'Testimonials', path: '/testimonials' },
-                { name: 'Book Consultation', path: '/contact' }
+                { name: 'Store', path: '/store' },
+                { name: 'Testimonials', path: '/testimonials' }
               ].map(link => (
                 <li key={link.name}><Link to={link.path} className="text-[#94A3B8] text-sm hover:text-white transition-colors">{link.name}</Link></li>
               ))}
@@ -74,25 +95,11 @@ function Footer() {
           <div className="flex flex-col">
             <h4 className="text-xs font-bold tracking-[0.2em] text-[#D4AF37] uppercase mb-8">Contact Us</h4>
             <ul className="flex flex-col gap-6 text-[#94A3B8] text-sm">
-              <li><span className="block text-white mb-1 font-medium">Phone Number</span>+91 98765 43210</li>
-              <li><span className="block text-white mb-1 font-medium">WhatsApp</span>+91 98765 43210</li>
-              <li><span className="block text-white mb-1 font-medium">Email Address</span>guide@example.com</li>
-              <li><span className="block text-white mb-1 font-medium">Business Hours</span>Mon - Sun<br/>9 AM – 8 PM</li>
+              <li><span className="block text-white mb-1 font-medium">Phone Number</span>+91 6389629652</li>
+              <li><span className="block text-white mb-1 font-medium">WhatsApp</span>+91 6389629652</li>
+              <li><span className="block text-white mb-1 font-medium">Email Address</span>photostudioshubham403@gmail.com</li>
+              <li><span className="block text-white mb-1 font-medium">Business Hours</span>24/7</li>
             </ul>
-          </div>
-
-          {/* 5. Quick CTA */}
-          <div className="lg:col-span-1 flex flex-col bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-2xl h-fit">
-            <h4 className="text-xs font-bold tracking-[0.2em] text-[#D4AF37] uppercase mb-4">Plan Your Shoot</h4>
-            <p className="text-[#94A3B8] text-sm mb-8 leading-relaxed">Ready to create something unforgettable?</p>
-            <div className="flex flex-col gap-4">
-              <Link to="/contact" className="w-full flex items-center justify-center bg-[#D4AF37] text-[#0F172A] py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-white transition-colors rounded-sm">
-                Book Your Date
-              </Link>
-              <Link to="/contact" className="w-full flex items-center justify-center border border-[#94A3B8]/30 text-white py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-white/10 transition-colors rounded-sm">
-                Talk To Us
-              </Link>
-            </div>
           </div>
 
         </div>

@@ -5,6 +5,51 @@ import { useMediaApi } from '../../api/media';
 import { useNotification } from '../../context/NotificationContext';
 import { Save, ArrowLeft, Image as ImageIcon, Upload, Trash2, X } from 'lucide-react';
 
+const categorySpecificationsConfig = {
+  'Wedding Album': [
+    { key: 'albumSize', label: 'Album Size', placeholder: 'e.g., 12x18, 10x14' },
+    { key: 'albumType', label: 'Album Type', placeholder: 'e.g., Layflat Premium' },
+    { key: 'pageCount', label: 'Page Count', placeholder: 'e.g., 40 Pages' },
+    { key: 'printQuality', label: 'Print Quality', placeholder: 'e.g., HD, Ultra HD' },
+    { key: 'coverMaterial', label: 'Cover Material', placeholder: 'e.g., Leather, Acrylic, Velvet' },
+  ],
+  'Wedding Card Printing': [
+    { key: 'cardSize', label: 'Card Size', placeholder: 'e.g., 5x7 Inch' },
+    { key: 'cardMaterial', label: 'Card Material', placeholder: 'e.g., Matte, Premium Paper' },
+    { key: 'printingType', label: 'Printing Type', placeholder: 'e.g., Digital, Offset' },
+    { key: 'envelopeIncluded', label: 'Envelope Included', placeholder: 'e.g., Yes / No' },
+    { key: 'minimumOrderQuantity', label: 'Minimum Order Quantity', placeholder: 'e.g., 100' },
+  ],
+  'Printed Mug': [
+    { key: 'capacity', label: 'Capacity', placeholder: 'e.g., 330ml' },
+    { key: 'material', label: 'Material', placeholder: 'e.g., Ceramic' },
+    { key: 'printType', label: 'Print Type', placeholder: 'e.g., Sublimation' },
+    { key: 'color', label: 'Color', placeholder: 'e.g., White, Black' },
+    { key: 'customPhotoSupport', label: 'Custom Photo Support', placeholder: 'e.g., Yes / No' },
+  ],
+  'Printed Keychain': [
+    { key: 'material', label: 'Material', placeholder: 'e.g., Acrylic, Metal' },
+    { key: 'shape', label: 'Shape', placeholder: 'e.g., Round, Rectangle' },
+    { key: 'size', label: 'Size', placeholder: 'e.g., 2 Inch' },
+    { key: 'printingType', label: 'Printing Type', placeholder: 'e.g., UV Print' },
+    { key: 'customPhotoSupport', label: 'Custom Photo Support', placeholder: 'e.g., Yes / No' },
+  ],
+  'Printed Water Bottle': [
+    { key: 'capacity', label: 'Capacity', placeholder: 'e.g., 750ml' },
+    { key: 'material', label: 'Material', placeholder: 'e.g., Stainless Steel' },
+    { key: 'color', label: 'Color', placeholder: 'e.g., Black, White' },
+    { key: 'printType', label: 'Print Type', placeholder: 'e.g., UV Print' },
+    { key: 'customDesignSupport', label: 'Custom Design Support', placeholder: 'e.g., Yes / No' },
+  ],
+  'Printed Cap': [
+    { key: 'material', label: 'Material', placeholder: 'e.g., Cotton' },
+    { key: 'capType', label: 'Cap Type', placeholder: 'e.g., Baseball, Sports' },
+    { key: 'color', label: 'Color', placeholder: 'e.g., Black, White, Blue' },
+    { key: 'printType', label: 'Print Type', placeholder: 'e.g., Print, Embroidery' },
+    { key: 'customLogoSupport', label: 'Custom Logo Support', placeholder: 'e.g., Yes / No' },
+  ]
+};
+
 const ProductEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,7 +69,7 @@ const ProductEditor = () => {
   const [formData, setFormData] = useState({
     name: '', slug: '', shortDescription: '', description: '', category: '',
     bannerImage: '', coverImage: '', galleryImages: [],
-    albumSize: '', albumType: '', pageCount: '', printQuality: '', coverMaterial: '',
+    specifications: {},
     basePrice: '', salePrice: '', discountPercentage: '',
     stockStatus: 'In Stock', isFeatured: false, isActive: true, displayOrder: 0
   });
@@ -58,8 +103,26 @@ const ProductEditor = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    
+    // Clear specifications if category changes
+    if (name === 'category') {
+      setFormData(prev => ({ ...prev, category: value, specifications: {} }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    }
   };
+
+  const handleSpecChange = (key, value) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: {
+        ...(prev.specifications || {}),
+        [key]: value
+      }
+    }));
+  };
+
+  const selectedCategoryName = categories.find(c => c._id === formData.category)?.name;
 
   const uploadToCloudinary = async (file, folder) => {
     try {
@@ -222,32 +285,28 @@ const ProductEditor = () => {
             </div>
           </div>
           
-          {/* Album Specifications */}
-          <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-            <h2 className="text-lg font-bold text-zinc-900 mb-4 border-b pb-2">Album Specifications</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Album Size</label>
-                <input type="text" name="albumSize" value={formData.albumSize} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="e.g., 12x18, 10x14" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Album Type</label>
-                <input type="text" name="albumType" value={formData.albumType} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="e.g., Layflat Premium" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Page Count</label>
-                <input type="text" name="pageCount" value={formData.pageCount} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="e.g., 40 Pages" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Print Quality</label>
-                <input type="text" name="printQuality" value={formData.printQuality} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="e.g., Ultra HD Silk Print" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Cover Material</label>
-                <input type="text" name="coverMaterial" value={formData.coverMaterial} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="e.g., Premium Italian Leather" />
+          {/* Dynamic Specifications */}
+          {selectedCategoryName && categorySpecificationsConfig[selectedCategoryName] && (
+            <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4 animate-in fade-in duration-300">
+              <h2 className="text-lg font-bold text-zinc-900 mb-4 border-b pb-2">
+                {selectedCategoryName} Specifications
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {categorySpecificationsConfig[selectedCategoryName].map((spec) => (
+                  <div key={spec.key} className={['coverMaterial', 'minimumOrderQuantity', 'customPhotoSupport', 'customDesignSupport', 'customLogoSupport'].includes(spec.key) ? 'md:col-span-2' : ''}>
+                    <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">{spec.label}</label>
+                    <input 
+                      type="text" 
+                      value={formData.specifications?.[spec.key] || ''} 
+                      onChange={(e) => handleSpecChange(spec.key, e.target.value)} 
+                      className="w-full px-3 py-2 border rounded-lg" 
+                      placeholder={spec.placeholder} 
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Sidebar Column */}

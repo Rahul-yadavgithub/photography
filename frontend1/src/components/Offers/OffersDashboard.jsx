@@ -1,68 +1,71 @@
-import React, { useState } from 'react';
-import { Plus, TrendingUp, Eye, MousePointerClick, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Tag, AlertTriangle } from 'lucide-react';
 import OfferCard from './OfferCard';
 import OfferCreationModal from './OfferCreationModal';
-
-const MOCK_OFFERS = [
-  {
-    id: 1,
-    type: 'percentage',
-    badgeText: '20% OFF',
-    title: 'Early Bird Special',
-    description: 'Book 6 months in advance for a discount.',
-    endDate: '31 Dec 2027',
-    status: 'Active',
-    packagesAttached: 2,
-    views: 1250,
-    conversions: 45
-  },
-  {
-    id: 2,
-    type: 'product',
-    badgeText: 'Free Album',
-    title: 'Premium Album Included',
-    description: 'Complimentary physical album with Gold package.',
-    endDate: 'Never',
-    status: 'Paused',
-    packagesAttached: 1,
-    views: 840,
-    conversions: 12
-  }
-];
+import { getOffers, createOffer, updateOffer, deleteOffer, toggleOfferStatus } from '../../api/offers';
 
 const OffersDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [offers, setOffers] = useState(MOCK_OFFERS);
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  useEffect(() => {
+    fetchOffers();
+  }, []);
+
+  const fetchOffers = async () => {
+    try {
+      const data = await getOffers();
+      setOffers(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = (offer) => {
     console.log('Edit offer', offer);
+    // Future enhancement: Open modal with offer data
   };
 
-  const handleToggleStatus = (id) => {
-    setOffers(offers.map(o => o.id === id ? { ...o, status: o.status === 'Active' ? 'Paused' : 'Active' } : o));
+  const handleToggleStatus = async (id) => {
+    try {
+      const updated = await toggleOfferStatus(id);
+      setOffers(offers.map(o => o._id === id ? updated : o));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDelete = (id) => {
-    setOffers(offers.filter(o => o.id !== id));
+  const confirmDelete = (id) => {
+    setDeleteConfirmId(id);
   };
 
-  const handleSaveOffer = (newOfferData) => {
-    // Mock save
-    const newOffer = {
-      id: Date.now(),
-      type: newOfferData.type,
-      badgeText: newOfferData.badgeText || 'NEW OFFER',
-      title: newOfferData.title,
-      description: newOfferData.description || 'Custom offer.',
-      endDate: newOfferData.endDate || 'No end date',
-      status: 'Active',
-      packagesAttached: 0,
-      views: 0,
-      conversions: 0
-    };
-    setOffers([newOffer, ...offers]);
-    setIsModalOpen(false);
+  const handleDelete = async () => {
+    if (!deleteConfirmId) return;
+    try {
+      await deleteOffer(deleteConfirmId);
+      setOffers(offers.filter(o => o._id !== deleteConfirmId));
+      setDeleteConfirmId(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  const handleSaveOffer = async (newOfferData) => {
+    try {
+      const created = await createOffer(newOfferData);
+      setOffers([created, ...offers]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save offer');
+    }
+  };
+
+  const activeCount = offers.filter(o => o.status === 'Active').length;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -79,38 +82,49 @@ const OffersDashboard = () => {
         </button>
       </div>
 
-      {/* Analytics Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Active Offers', value: offers.filter(o => o.status === 'Active').length, icon: Tag, color: 'text-blue-500', bg: 'bg-blue-50' },
-          { label: 'Total Views', value: '2.1k', icon: Eye, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-          { label: 'Total Clicks', value: '482', icon: MousePointerClick, color: 'text-amber-500', bg: 'bg-amber-50' },
-          { label: 'Avg Conversion', value: '4.8%', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2 rounded-lg ${stat.bg}`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-              </div>
-              <span className="text-sm font-semibold text-zinc-500">{stat.label}</span>
-            </div>
-            <div className="text-2xl font-bold text-zinc-900">{stat.value}</div>
+      {/* Analytics Overview - Cleaned up per request */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-orange-50">
+            <Tag className="w-6 h-6 text-[#ea580c]" />
           </div>
-        ))}
+          <div>
+            <div className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-1">Active Offers</div>
+            <div className="text-3xl font-black text-zinc-900 leading-none">{activeCount}</div>
+          </div>
+        </div>
       </div>
 
       {/* Offers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {offers.map(offer => (
-          <OfferCard 
-            key={offer.id} 
-            offer={offer} 
-            onEdit={handleEdit} 
-            onToggleStatus={handleToggleStatus}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
+        </div>
+      ) : offers.length === 0 ? (
+        <div className="bg-white border border-zinc-200 rounded-2xl p-12 text-center flex flex-col items-center">
+          <Tag className="w-12 h-12 text-zinc-300 mb-4" />
+          <h3 className="text-lg font-bold text-zinc-900 mb-1">No Offers Found</h3>
+          <p className="text-zinc-500 text-sm mb-6 max-w-sm mx-auto">You haven't created any promotional offers yet. Create your first offer to boost bookings.</p>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-2.5 bg-zinc-900 text-white text-sm font-bold rounded-xl hover:bg-zinc-800 transition-all"
+          >
+            Create First Offer
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {offers.map(offer => (
+            <OfferCard 
+              key={offer._id} 
+              offer={offer} 
+              onEdit={handleEdit} 
+              onToggleStatus={handleToggleStatus}
+              onDelete={confirmDelete}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
@@ -118,6 +132,46 @@ const OffersDashboard = () => {
           onClose={() => setIsModalOpen(false)} 
           onSave={handleSaveOffer} 
         />
+      )}
+
+      {/* Premium Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          {/* Backdrop with blur */}
+          <div 
+            className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-300" 
+            onClick={() => setDeleteConfirmId(null)}
+          ></div>
+          
+          {/* Modal Content */}
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
+            
+            {/* Warning Icon Container */}
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-5 border border-red-100">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-zinc-900 mb-2">Delete this Offer?</h3>
+            <p className="text-sm text-zinc-500 mb-8 leading-relaxed">
+              Are you completely sure you want to permanently delete this offer? This action cannot be undone and will immediately remove it from all connected packages.
+            </p>
+            
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 px-4 py-3.5 bg-zinc-100 text-zinc-700 font-bold text-sm rounded-xl hover:bg-zinc-200 hover:text-zinc-900 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 px-4 py-3.5 bg-red-500 text-white font-bold text-sm rounded-xl hover:bg-red-600 shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

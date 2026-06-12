@@ -31,7 +31,12 @@ const OfferCreationModal = ({ onClose, onSave }) => {
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
   const handleSave = () => {
-    onSave(formData);
+    const payload = {
+      ...formData,
+      validFrom: formData.startDate || undefined,
+      validUntil: formData.endDate || undefined,
+    };
+    onSave(payload);
   };
 
   return (

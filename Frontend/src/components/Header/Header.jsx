@@ -20,7 +20,8 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const forceDarkText = false;
+  const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/bookings');
+  const forceDarkText = isDashboard;
   const headerBg = isScrolled ? 'bg-white shadow-md' : 'bg-transparent';
   const iconColor = isScrolled || forceDarkText ? 'text-gray-900' : 'text-white';
 

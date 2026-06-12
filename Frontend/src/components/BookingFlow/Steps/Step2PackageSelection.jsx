@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { getPackages } from '../../../api/packageService';
-import { Loader2, Check, Clock, Users, Video } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { useBooking } from '../../../context/BookingContext';
 
 const Step2PackageSelection = ({ data, updateData, onNext }) => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const navigate = useNavigate();
+  const { pauseBookingFlow } = useBooking();
 
   useEffect(() => {
     const loadPackages = async () => {
@@ -15,8 +20,6 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
         setError(null);
         // Fetch packages filtered by category
         const responseData = await getPackages(data.enquiryType);
-        // The API now directly returns the array (or we can adapt based on how getPackages returns it)
-        // getPackages returns data.data directly if success, so it's an array.
         if (Array.isArray(responseData)) {
           const filteredPkgs = responseData.filter(
             p => p.category === data.enquiryType && p.status === 'Published'
@@ -38,20 +41,30 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
     }
   }, [data.enquiryType]);
 
-  const handleSelect = (pkg) => {
+  const handleSelectPackage = (pkg) => {
     updateData({ 
       packageId: pkg._id,
       packageName: pkg.name,
       selectedPackageSnapshot: pkg
     });
-    setTimeout(onNext, 300);
+    // Immediately continue booking
+    setTimeout(onNext, 50);
+  };
+
+  const handleMoreDetails = (pkg) => {
+    pauseBookingFlow();
+    // Assuming the category slug is similar to enquiryType (lowercased)
+    // and package slug or id can be used as a hash to scroll to.
+    const categorySlug = data.enquiryType.toLowerCase().replace(/\\s+/g, '-');
+    const packageHash = pkg.slug || pkg._id;
+    navigate(`/category/${categorySlug}#${packageHash}`);
   };
 
   if (loading) {
     return (
       <div className="flex flex-col h-full items-center justify-center pt-10">
         <Loader2 className="w-8 h-8 animate-spin text-gray-900 mb-4" />
-        <p className="text-gray-500 text-sm">Loading available packages...</p>
+        <p className="text-gray-500 text-sm tracking-widest uppercase font-bold">Loading Packages...</p>
       </div>
     );
   }
@@ -74,82 +87,72 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
     <div className="flex flex-col h-full max-w-5xl mx-auto w-full pt-4">
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-sans font-light tracking-tight text-gray-900 mb-2">Choose Your Package</h2>
-        <p className="text-gray-500 text-sm">Select the perfect package for your {data.enquiryType}.</p>
+        <p className="text-gray-500 text-sm">Select the perfect package for your {data.enquiryType} Photography.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pb-8 px-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-y-auto pb-8 px-2">
         {packages.map((pkg, idx) => {
-          const isSelected = data.packageId === pkg._id;
-          
+          // Format price
+          const priceDisplay = pkg.showPricing === false 
+            ? 'Custom Quote' 
+            : `₹${(pkg.discountPrice || pkg.price || 0).toLocaleString()}`;
+
           return (
-            <motion.button
+            <motion.div
               key={pkg._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              onClick={() => handleSelect(pkg)}
-              className={`
-                relative flex flex-col text-left overflow-hidden rounded-[2rem] border transition-all duration-300
-                ${isSelected 
-                  ? 'bg-gray-900 border-gray-900 text-white shadow-xl scale-[1.02]' 
-                  : 'bg-white border-gray-200 text-gray-800 hover:border-gray-300 hover:shadow-xl'
-                }
-              `}
+              className="flex flex-col bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 h-full"
             >
-              {pkg.isPopular && (
-                <div className={`absolute top-4 right-4 px-3 py-1 text-[10px] uppercase tracking-widest font-bold rounded-full z-10 ${isSelected ? 'bg-white text-gray-900' : 'bg-[#D4AF37] text-white'}`}>
-                  Popular
+              {/* Section 1: Hero Thumbnail */}
+              <div className="w-full aspect-video relative overflow-hidden bg-gray-100 shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent z-10" />
+                <img 
+                  src={pkg.media?.thumbnail || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'} 
+                  alt={pkg.name} 
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute top-4 left-4 z-20">
+                  <span className="px-3 py-1 bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold uppercase tracking-wider rounded shadow-sm">
+                    {data.enquiryType}
+                  </span>
                 </div>
-              )}
+              </div>
 
-              {pkg.media?.thumbnail && (
-                <div className="w-full h-48 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-black/20 z-0"></div>
-                  <img src={pkg.media.thumbnail} alt={pkg.name} className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
-                </div>
-              )}
-
-              <div className="p-6 sm:p-8 flex-1 flex flex-col">
-                <div className="mb-6">
-                  <h3 className={`text-xl font-bold font-serif mb-2 ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+              {/* Section 2: Package Information */}
+              <div className="p-6 pb-8 flex-grow flex flex-col">
+                <div className="flex items-start justify-between mb-2 gap-4">
+                  <h3 className="text-xl font-serif text-gray-900 leading-tight">
                     {pkg.name}
                   </h3>
-                  {pkg.showPricing && (
-                     <div className="flex items-baseline gap-2">
-                       <span className={`text-2xl font-light tracking-tight ${isSelected ? 'text-[#D4AF37]' : 'text-gray-900'}`}>
-                         ₹{pkg.discountPrice ? pkg.discountPrice.toLocaleString() : pkg.price?.toLocaleString()}
-                       </span>
-                       {pkg.discountPrice && pkg.price && (
-                         <span className="text-sm line-through text-gray-400">
-                           ₹{pkg.price.toLocaleString()}
-                         </span>
-                       )}
-                     </div>
-                  )}
+                  <span className="text-lg font-bold text-gray-900 shrink-0">
+                    {priceDisplay}
+                  </span>
                 </div>
-
-                <p className={`text-sm leading-relaxed mb-6 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
-                  {pkg.shortDesc || "Premium photography experience tailored for your special day."}
+                
+                <p className="text-gray-500 text-sm line-clamp-1">
+                  {pkg.shortDesc || `Premium ${data.enquiryType} coverage.`}
                 </p>
-
-                <div className="flex-1 space-y-3 mb-6">
-                  {pkg.features?.slice(0, 5).map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className={`mt-0.5 rounded-full p-0.5 ${isSelected ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                        <Check className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-[#D4AF37]'}`} />
-                      </div>
-                      <span className={`text-sm leading-tight ${isSelected ? 'text-gray-200' : 'text-gray-600'}`}>
-                        {feature.title}
-                      </span>
-                    </div>
-                  ))}
-                  {pkg.features?.length > 5 && (
-                     <p className={`text-xs italic ${isSelected ? 'text-gray-400' : 'text-gray-400'}`}>+ {pkg.features.length - 5} more features</p>
-                  )}
-                </div>
-
               </div>
-            </motion.button>
+
+              {/* Section 3: Actions */}
+              <div className="p-6 pt-0 mt-auto flex items-center gap-3">
+                <button
+                  onClick={() => handleMoreDetails(pkg)}
+                  className="flex-1 py-3 px-3 bg-white border border-gray-300 text-gray-800 font-bold text-sm uppercase tracking-wide rounded-sm hover:bg-gray-50 transition-colors text-center shadow-sm"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => handleSelectPackage(pkg)}
+                  className="flex-1 py-3 px-3 bg-[#fb641b] text-white font-bold text-sm uppercase tracking-wide rounded-sm hover:bg-[#f05a16] transition-colors text-center shadow-sm"
+                >
+                  Select Package
+                </button>
+              </div>
+            </motion.div>
           );
         })}
       </div>

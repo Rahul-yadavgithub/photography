@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { getCategoryBySlug, getCategoriesWithPackages } from '../api/packageService';
+import { getActiveOffers } from '../api/offerService';
 import { ChevronRight, LayoutGrid, CheckCircle2, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import EditorialHero from '../components/common/EditorialHero';
+import AutoScrollingPackageCarousel from '../components/shared/AutoScrollingPackageCarousel';
+import useSEO from '../hooks/useSEO';
 
 function FAQItem({ faq }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,46 +30,10 @@ function FAQItem({ faq }) {
 function CategoryDetailPage() {
   const { slug } = useParams();
   const [category, setCategory] = useState(null);
+
+  useSEO({ title: category ? category.categoryName : null, customSeoTitle: category?.seoTitle, customSeoDescription: category?.seoDescription });
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const packageContainerRef = useRef(null);
-  const packageTrackRef = useRef(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const [scrollDuration, setScrollDuration] = useState(30);
-  const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    const checkOverflow = () => {
-      if (packageContainerRef.current && packageTrackRef.current) {
-        const containerWidth = packageContainerRef.current.offsetWidth;
-        const cards = packageTrackRef.current.querySelectorAll('.package-card-item');
-        const count = packages.length;
-        
-        if (count > 0 && cards.length >= count) {
-          let totalWidth = 0;
-          // Only measure the first 'count' cards to get the single set width
-          for (let i = 0; i < count; i++) {
-            totalWidth += cards[i].offsetWidth;
-          }
-          const gapsWidth = (count - 1) * 32; // gap-8 = 32px
-          const fullSetWidth = totalWidth + gapsWidth;
-          
-          const overflow = fullSetWidth > containerWidth;
-          setIsOverflowing(overflow);
-          // Calculate scrolling duration based on width
-          setScrollDuration(Math.max(25, fullSetWidth / 50));
-        }
-      }
-    };
-
-    const timer = setTimeout(checkOverflow, 200);
-    window.addEventListener('resize', checkOverflow);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', checkOverflow);
-    };
-  }, [packages]);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -82,7 +49,13 @@ function CategoryDetailPage() {
         // Find the matching category to extract its active packages
         const matchedCat = allCategoriesWithPackages.find(c => c.id === slug);
         if (matchedCat && matchedCat.packages) {
-          setPackages(matchedCat.packages);
+          const offersData = await getActiveOffers();
+          // Attach applicable offers to packages
+          const packagesWithOffers = matchedCat.packages.map(pkg => {
+            const pkgOffers = offersData.filter(o => o.applicablePackages.some(ap => ap._id === pkg._id || ap.id === pkg._id || ap === pkg._id || ap.slug === pkg.slug || ap._id === pkg.id));
+            return { ...pkg, offers: pkgOffers, offer: pkgOffers[0] };
+          });
+          setPackages(packagesWithOffers);
         }
       } catch (error) {
         console.error("Error fetching category details:", error);
@@ -140,98 +113,7 @@ function CategoryDetailPage() {
             </div>
           </div>
 
-          {/* Slider Container with Max Visible Area Rule (80% Viewport width) */}
-          <div className="w-[80vw] mx-auto overflow-hidden">
-            <div 
-              ref={packageContainerRef}
-              className="w-full overflow-visible py-8"
-            >
-              <div 
-                ref={packageTrackRef}
-                style={{ 
-                  animation: isOverflowing ? `marqueeScroll ${scrollDuration}s linear infinite` : 'none',
-                  animationPlayState: isHovered ? 'paused' : 'running'
-                }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onTouchStart={() => setIsHovered(true)}
-                onTouchEnd={() => setIsHovered(false)}
-                className={`${isOverflowing ? 'marquee-track gap-8' : 'flex flex-row flex-wrap justify-center gap-8'}`}
-              >
-                {(isOverflowing ? [...packages, ...packages] : packages).map((pkg, idx) => (
-                  <div 
-                    key={`${pkg.id || pkg._id}-${idx}`} 
-                    className="package-card-item shrink-0 w-[285px] sm:w-[320px] md:w-[360px] lg:w-[380px]"
-                  >
-                    <div className="premium-package-card overflow-hidden flex flex-col group h-full bg-white rounded-3xl">
-                      {/* Package Image - Fixed Height */}
-                      <div className="relative h-60 overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
-                        <img 
-                          src={pkg.media?.thumbnail || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'} 
-                          alt={pkg.name} 
-                          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
-                          loading="lazy"
-                        />
-                        
-                        {pkg.offer && (
-                          <div className="absolute top-4 left-4">
-                            <span className="px-3 py-1 bg-[#ea580c] text-white text-[10px] font-bold uppercase tracking-wider rounded shadow-sm">
-                              {pkg.offer.badgeText}
-                            </span>
-                          </div>
-                        )}
-                        {pkg.isPopular && !pkg.offer && (
-                          <div className="absolute top-4 left-4">
-                            <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider rounded shadow-sm">
-                              Most Popular
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Content Area */}
-                      <div className="p-6 flex-grow flex flex-col bg-white">
-                        <div className="mb-4 flex-grow">
-                          <h3 className="text-xl font-serif text-gray-900 mb-2 leading-snug group-hover:text-[#ea580c] transition-colors">{pkg.name}</h3>
-                          <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wide leading-relaxed line-clamp-2">
-                            {pkg.shortDesc || pkg.description}
-                          </p>
-                        </div>
-                        
-                        <div className="mt-auto">
-                          <div className="border-t border-gray-200 mb-4"></div>
-                          
-                          {/* Bottom Action Row */}
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Starting From</span>
-                              {pkg.showPricing === false ? (
-                                <span className="text-xl font-bold text-gray-900">Custom Quote</span>
-                              ) : (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xl font-bold text-gray-900">₹{pkg.price}</span>
-                                  {pkg.discountPrice && (
-                                    <span className="text-xs text-gray-400 line-through">₹{pkg.discountPrice}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            
-                            <Link 
-                              to={`/packages/${pkg.slug || pkg.id}`}
-                              className="px-5 py-2 bg-[#ea580c] text-white text-xs font-bold uppercase tracking-wider rounded-full hover:bg-[#c2410c] transition-colors shadow-md flex items-center gap-2"
-                            >
-                              View Details <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <AutoScrollingPackageCarousel packages={packages} />
         </div>
       )}
 

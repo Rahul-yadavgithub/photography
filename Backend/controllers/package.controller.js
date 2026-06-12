@@ -1,4 +1,5 @@
 import Package from '../models/package.model.js';
+import Offer from '../models/offer.model.js';
 
 // Get all packages
 export const getPackages = async (req, res) => {
@@ -8,8 +9,26 @@ export const getPackages = async (req, res) => {
             query.category = req.query.category;
         }
         
-        const packages = await Package.find(query).sort({ isFeatured: -1, order: 1, createdAt: -1 });
-        res.status(200).json({ success: true, data: packages });
+        const packages = await Package.find(query).sort({ isFeatured: -1, order: 1, createdAt: -1 }).lean();
+        
+        const now = new Date();
+        const activeOffers = await Offer.find({
+            status: 'Active',
+            $or: [
+                { validUntil: { $exists: false } },
+                { validUntil: null },
+                { validUntil: { $gte: now } }
+            ]
+        }).lean();
+
+        const packagesWithOffers = packages.map(pkg => {
+            const pkgOffers = activeOffers.filter(offer => 
+                offer.applicablePackages && offer.applicablePackages.some(ap => ap.toString() === pkg._id.toString())
+            );
+            return { ...pkg, offers: pkgOffers };
+        });
+
+        res.status(200).json({ success: true, data: packagesWithOffers });
     } catch (error) {
         console.error('Error fetching packages:', error);
         res.status(500).json({ success: false, message: 'Server error fetching packages', error: error.message });
@@ -21,11 +40,25 @@ export const getPackage = async (req, res) => {
     try {
         const { id } = req.params;
         const query = id.match(/^[0-9a-fA-F]{24}$/) ? { _id: id } : { slug: id };
-        const pkg = await Package.findOne(query);
+        const pkg = await Package.findOne(query).lean();
 
         if (!pkg) {
             return res.status(404).json({ success: false, message: 'Package not found' });
         }
+
+        const now = new Date();
+        const activeOffers = await Offer.find({
+            status: 'Active',
+            applicablePackages: pkg._id,
+            $or: [
+                { validUntil: { $exists: false } },
+                { validUntil: null },
+                { validUntil: { $gte: now } }
+            ]
+        }).lean();
+
+        pkg.offers = activeOffers;
+
         res.status(200).json({ success: true, data: pkg });
     } catch (error) {
         console.error('Error fetching package:', error);

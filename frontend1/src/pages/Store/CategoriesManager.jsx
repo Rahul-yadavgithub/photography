@@ -2,8 +2,17 @@ import { useState, useEffect } from 'react';
 import { useStoreApi } from '../../api/store';
 import { useMediaApi } from '../../api/media';
 import { useNotification } from '../../context/NotificationContext';
-import { Plus, Edit2, Trash2, Save, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const PREDEFINED_CATEGORIES = [
+  'Wedding Album',
+  'Wedding Card Printing',
+  'Printed Mug',
+  'Printed Keychain',
+  'Printed Water Bottle',
+  'Printed Cap'
+];
 
 const CategoriesManager = () => {
   const { getCategories, createCategory, updateCategory, deleteCategory } = useStoreApi();
@@ -13,6 +22,7 @@ const CategoriesManager = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, categoryId: null });
   const [editingCategory, setEditingCategory] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -88,16 +98,25 @@ const CategoriesManager = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
+  const handleDelete = (id) => {
+    setDeleteConfirm({ show: true, categoryId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.categoryId) return;
     try {
-      await deleteCategory(id);
+      await deleteCategory(deleteConfirm.categoryId);
       showSuccess('Category deleted');
+      setDeleteConfirm({ show: false, categoryId: null });
       fetchCategories();
     } catch (err) {
       showError('Failed to delete category');
     }
   };
+
+  const availableCategories = PREDEFINED_CATEGORIES.filter(
+    name => !categories.some(c => c.name === name) || (editingCategory && editingCategory.name === name)
+  );
 
   if (loading) return <div className="p-8 text-center">Loading categories...</div>;
 
@@ -145,7 +164,20 @@ const CategoriesManager = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Name</label>
-                <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                <select 
+                  required 
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})} 
+                  className="w-full px-3 py-2 border rounded-lg bg-white"
+                >
+                  <option value="" disabled>Select Predefined Category</option>
+                  {availableCategories.map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+                {availableCategories.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1 font-medium">All predefined categories have been created.</p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Description</label>
@@ -172,6 +204,37 @@ const CategoriesManager = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-zinc-900 mb-2">Delete Category?</h3>
+              <p className="text-zinc-500 mb-6">
+                Are you sure you want to delete this category? This action cannot be undone and may affect products linked to it.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setDeleteConfirm({ show: false, categoryId: null })}
+                  className="px-5 py-2.5 rounded-xl font-bold text-zinc-600 hover:bg-zinc-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDelete}
+                  className="px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                >
+                  Yes, Delete Category
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

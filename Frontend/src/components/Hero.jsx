@@ -20,7 +20,7 @@ function Hero() {
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         >
-          <source src="https://cdn.coverr.co/videos/coverr-temp-dfwgwipes-mov-3172/1080p.mp4" type="video/mp4" />
+          <source src="https://res.cloudinary.com/dzbliymin/video/upload/v1781249349/jdjd_iakzp6.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         {/* Soft elegant gradient */}

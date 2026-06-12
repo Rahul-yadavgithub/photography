@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Play, ArrowLeft, ChevronRight, Film, X, Camera } from 'lucide-react';
+import { Play, ArrowLeft, ChevronRight, Film, X, Camera, Smartphone } from 'lucide-react';
 import { getFilmCategoryBySlug, getFilmsByCategory, getReelsByCategory } from '../api/filmService';
 import PremiumVideoGallery from '../components/common/PremiumVideoGallery';
+import PremiumVideoModal from '../components/shared/PremiumVideoModal';
+import useSEO from '../hooks/useSEO';
 
 export default function FilmCategoryPage() {
   const { slug } = useParams();
   const [category, setCategory] = useState(null);
+  
+  useSEO({ title: category ? category.name : null, customSeoTitle: category?.seoTitle, customSeoDescription: category?.seoDescription });
   const [films, setFilms] = useState([]);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,7 +180,14 @@ export default function FilmCategoryPage() {
                   onClick={() => setActiveVideo(reel)}
                   className="premium-card shrink-0 w-[260px] md:w-[280px] aspect-[9/16] relative overflow-hidden group cursor-pointer snap-center"
                 >
-                  <img src={reel.thumbnail || "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={reel.title} />
+                  {reel.thumbnail ? (
+                    <img src={reel.thumbnail} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt={reel.title} />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center opacity-80 mix-blend-overlay bg-gradient-to-br from-purple-600 via-pink-500 to-[#ea580c] absolute inset-0">
+                      <Smartphone className="w-16 h-16 text-white/50 mb-4" />
+                      <span className="text-white/50 text-[10px] tracking-widest font-bold uppercase text-center px-4">Social Highlight</span>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90 opacity-80 group-hover:opacity-100 transition-opacity"></div>
 
                   <span className="absolute top-5 right-5 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded tracking-widest shadow-sm">
@@ -227,36 +238,7 @@ export default function FilmCategoryPage() {
       </div>
 
       {/* Premium Media Viewer Overlay */}
-      {activeVideo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/95 backdrop-blur-2xl animate-in fade-in duration-300">
-          <button
-            onClick={() => setActiveVideo(null)}
-            className="absolute top-6 right-6 md:top-8 md:right-8 text-white/50 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-3 rounded-full backdrop-blur-md shadow-lg z-50"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          <div className="w-full max-w-6xl aspect-[16/9] bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-2xl relative mx-4 md:mx-8 ring-1 ring-white/10 animate-in zoom-in-95 duration-500">
-            {activeVideo.videoSource === 'youtube' && (
-              <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${activeVideo.videoUrl.split('v=')[1] || activeVideo.videoUrl.split('/').pop()}?autoplay=1&rel=0`} title={activeVideo.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-            )}
-            {activeVideo.videoSource === 'vimeo' && (
-              <iframe className="w-full h-full" src={`https://player.vimeo.com/video/${activeVideo.videoUrl.split('/').pop()}?autoplay=1`} title={activeVideo.title} frameBorder="0" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen></iframe>
-            )}
-            {(activeVideo.videoSource === 'upload' || activeVideo.videoSource === 'url' || activeVideo.videoSource === 'instagram' || activeVideo.videoSource === 'youtube_shorts') && (
-              <video src={activeVideo.videoUrl} autoPlay controls className="w-full h-full object-contain"></video>
-            )}
-          </div>
-
-          {/* Video Metadata beneath player */}
-          <div className="absolute bottom-0 inset-x-0 p-8 pt-24 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none">
-            <div className="max-w-6xl mx-auto">
-              <h3 className="text-white text-2xl font-serif drop-shadow-md">{activeVideo.title}</h3>
-              {activeVideo.description && <p className="text-white/70 text-sm mt-2 max-w-2xl line-clamp-2">{activeVideo.description}</p>}
-            </div>
-          </div>
-        </div>
-      )}
+      <PremiumVideoModal video={activeVideo} onClose={() => setActiveVideo(null)} />
     </div>
   );
 }

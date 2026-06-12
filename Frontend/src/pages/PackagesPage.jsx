@@ -4,8 +4,10 @@ import { getCategoriesWithPackages } from '../api/packageService';
 import { ChevronRight, LayoutGrid, ArrowRight } from 'lucide-react';
 import Breadcrumbs from '../components/common/Breadcrumbs';
 import { motion } from 'framer-motion';
+import useSEO from '../hooks/useSEO';
 
 function PackagesPage() {
+  useSEO();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 

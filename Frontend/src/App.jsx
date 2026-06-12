@@ -16,7 +16,9 @@ import CartDrawer from './components/Store/CartDrawer';
 import PortfolioPage from './pages/PortfolioPage';
 import PremiumBookingFlow from './components/BookingFlow/PremiumBookingFlow';
 import CustomerDashboard from './pages/CustomerDashboard';
-
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import SessionTimeoutManager from './components/auth/SessionTimeoutManager';
+import ResumeBookingFAB from './components/BookingFlow/ResumeBookingFAB';
 
 
 function App() {
@@ -25,6 +27,7 @@ function App() {
         <Header />
         <CartDrawer />
         <PremiumBookingFlow />
+        <ResumeBookingFAB />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -37,7 +40,15 @@ function App() {
             <Route path="/portfolio" element={<PortfolioPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/store/product/:slug" element={<ProductDetailPage />} />
-            <Route path="/dashboard" element={<CustomerDashboard />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <SessionTimeoutManager />
+                  <CustomerDashboard />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
         </main>
         <Footer />

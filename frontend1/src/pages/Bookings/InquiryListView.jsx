@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Filter, ChevronLeft, Phone, Mail, Calendar, Clock, Check, X, PhoneCall, MoreVertical } from 'lucide-react';
+import { Search, Filter, ChevronLeft, Phone, Mail, Calendar, Clock, Check, X, PhoneCall, MoreVertical, CreditCard, Package } from 'lucide-react';
 import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
 
 const InquiryListView = () => {
@@ -19,7 +19,8 @@ const InquiryListView = () => {
         const response = await fetch(`${backendUrl}/api/bookings`);
         const result = await response.json();
         if (result.success) {
-          setAllInquiries(result.data);
+          const services = result.data.filter(b => b.inquiryType === 'service' || !b.inquiryType);
+          setAllInquiries(services);
         }
       } catch (error) {
         console.error("Failed to fetch bookings:", error);
@@ -28,12 +29,23 @@ const InquiryListView = () => {
     fetchBookings();
   }, []);
 
+  const getDisplayStatus = (inq) => {
+    return inq.bookingStatus || inq.status || 'Pending';
+  };
+
+  const formatStatusDisplay = (status) => {
+    if (!status) return 'Pending';
+    return status.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase());
+  };
+
   // Filter inquiries based on category, search, and status
   const inquiries = useMemo(() => {
     return allInquiries.filter(inq => {
       const cat = inq.enquiryType || inq.category || 'Other';
       if (cat !== categoryName) return false;
-      if (statusFilter !== 'All' && inq.status !== statusFilter) return false;
+      
+      const currentStatus = getDisplayStatus(inq).toLowerCase();
+      if (statusFilter !== 'All' && currentStatus !== statusFilter.toLowerCase()) return false;
       
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
@@ -41,7 +53,8 @@ const InquiryListView = () => {
           inq.customerName.toLowerCase().includes(term) ||
           (inq.email && inq.email.toLowerCase().includes(term)) ||
           inq.mobileNumber.includes(term) ||
-          (inq.advancePlan && inq.advancePlan.toLowerCase().includes(term))
+          (inq.advancePlan && inq.advancePlan.toLowerCase().includes(term)) ||
+          (inq.bookingReference && inq.bookingReference.toLowerCase().includes(term))
         );
       }
       return true;
@@ -90,10 +103,11 @@ const InquiryListView = () => {
                 className="pl-10 pr-8 py-2.5 bg-white border border-zinc-200 rounded-xl outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 transition-all text-sm shadow-sm appearance-none font-bold text-zinc-700 cursor-pointer"
               >
                 <option value="All">All Statuses</option>
-                <option value="Pending">Pending</option>
-                <option value="Contacted">Contacted</option>
+                <option value="Pending_Approval">Pending Approval</option>
                 <option value="Approved">Approved</option>
-                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Pending">Legacy: Pending</option>
               </select>
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             </div>
@@ -105,23 +119,27 @@ const InquiryListView = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {inquiries.map((inquiry) => {
           const urgency = getUrgency(inquiry.eventDate);
-          const statusColor = getStatusColor(inquiry.status);
+          const currentStatus = getDisplayStatus(inquiry);
+          const statusColor = getStatusColor(currentStatus);
+          const paymentStatusColor = getStatusColor(inquiry.paymentStatus);
           const daysRemaining = getDaysRemaining(inquiry.eventDate);
 
           return (
-            <div key={inquiry.id} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full group">
+            <div key={inquiry._id} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full group">
               
               {/* Header: Package Name and Badges */}
               <div className="flex items-start justify-between mb-4">
                 <div className="pr-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1 block">Selected Plan</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1 block">
+                    {inquiry.inquiryType === 'product' ? 'Product' : 'Selected Plan'}
+                  </span>
                   <Link to={`/bookings/inquiry/${inquiry._id}`} className="text-lg font-bold text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                    {inquiry.advancePlan || 'Custom Plan'}
+                    {inquiry.inquiryType === 'product' ? inquiry.productData?.productName : (inquiry.packageName || inquiry.advancePlan || 'Custom Plan')}
                   </Link>
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
                   <span className={`inline-flex px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border ${statusColor}`}>
-                    {inquiry.status}
+                    {formatStatusDisplay(currentStatus)}
                   </span>
                 </div>
               </div>
@@ -130,7 +148,7 @@ const InquiryListView = () => {
               <div className="bg-zinc-50 rounded-xl p-4 mb-4 border border-zinc-100 flex-grow">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold">
-                    {inquiry.customerName.charAt(0)}
+                    {inquiry.customerName?.charAt(0)}
                   </div>
                   <div>
                     <h4 className="font-bold text-zinc-900 text-sm">{inquiry.customerName}</h4>
@@ -152,23 +170,61 @@ const InquiryListView = () => {
                 </div>
               </div>
 
-              {/* Dates & Urgency */}
-              <div className="flex items-center justify-between py-3 border-t border-b border-zinc-100 mb-4">
+              {/* Payment Summary */}
+              <div className="flex items-center justify-between py-3 border-t border-zinc-100 mb-0">
                 <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-zinc-400" />
+                  <CreditCard className="w-4 h-4 text-zinc-400" />
                   <div>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Event Date</span>
-                    <span className="font-bold text-zinc-900">{formatDate(inquiry.eventDate)}</span>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Paid</span>
+                    <span className="font-bold text-zinc-900">₹{(inquiry.amountPaid || 0).toLocaleString()}</span>
                   </div>
                 </div>
                 
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Urgency</span>
-                  <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${urgency.color}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${urgency.dot}`}></span>
-                    {daysRemaining < 0 ? 'Passed' : `${daysRemaining} Days Left`}
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Payment</span>
+                  <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border ${paymentStatusColor} uppercase tracking-widest`}>
+                    {formatStatusDisplay(inquiry.paymentStatus || 'not_required')}
                   </div>
                 </div>
+              </div>
+
+              {/* Conditional Event / Product Details */}
+              <div className="flex items-center justify-between py-3 border-t border-b border-zinc-100 mb-4">
+                {inquiry.inquiryType === 'product' ? (
+                  <>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="w-4 h-4 text-zinc-400" />
+                      <div>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Quantity</span>
+                        <span className="font-bold text-zinc-900">{inquiry.productData?.quantity || 1} units</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Order Type</span>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border bg-blue-50 text-blue-700 border-blue-200">
+                        Product
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-zinc-400" />
+                      <div>
+                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Event Date</span>
+                        <span className="font-bold text-zinc-900">{formatDate(inquiry.eventDate)}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Urgency</span>
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${urgency.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${urgency.dot}`}></span>
+                        {daysRemaining < 0 ? 'Passed' : `${daysRemaining} Days Left`}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Quick Actions */}

@@ -1,14 +1,16 @@
 import React from 'react';
-import { Percent, Tag, Gift, Star, Clock, Calendar, Sparkles } from 'lucide-react';
+import { Percent, Tag, Gift, Clock, Calendar, Video, Navigation } from 'lucide-react';
 
 const TYPES = [
-  { id: 'percentage', title: 'Percentage Discount', desc: 'e.g., 20% OFF. Best for seasonal sales.', icon: Percent, color: 'text-amber-600', bg: 'bg-amber-100' },
-  { id: 'flat', title: 'Flat Discount', desc: 'e.g., ₹500 OFF. Best for direct price reduction.', icon: Tag, color: 'text-emerald-600', bg: 'bg-emerald-100' },
-  { id: 'addon', title: 'Free Add-On', desc: 'e.g., Free Drone Coverage.', icon: Gift, color: 'text-blue-600', bg: 'bg-blue-100' },
-  { id: 'product', title: 'Free Product', desc: 'e.g., Free Premium Album.', icon: Star, color: 'text-purple-600', bg: 'bg-purple-100' },
-  { id: 'limited', title: 'Limited Time Offer', desc: 'e.g., Ends In 3 Days.', icon: Clock, color: 'text-rose-600', bg: 'bg-rose-100' },
-  { id: 'festival', title: 'Festival Offer', desc: 'e.g., Wedding Season Special.', icon: Calendar, color: 'text-orange-600', bg: 'bg-orange-100' },
-  { id: 'custom', title: 'Custom Promotion', desc: 'Create a custom promotional message.', icon: Sparkles, color: 'text-zinc-600', bg: 'bg-zinc-100' },
+  { id: 'Percentage Discount', title: 'Percentage Discount', desc: 'e.g., 20% OFF.', icon: Percent, color: 'text-amber-600', bg: 'bg-amber-100' },
+  { id: 'Flat Discount', title: 'Flat Discount', desc: 'e.g., ₹5000 OFF.', icon: Tag, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+  { id: 'Free Album', title: 'Free Album', desc: 'Complimentary premium album.', icon: Gift, color: 'text-blue-600', bg: 'bg-blue-100' },
+  { id: 'Free Reel', title: 'Free Reel', desc: 'Bonus cinematic reel.', icon: Video, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+  { id: 'Free Drone Shoot', title: 'Free Drone Shoot', desc: 'Aerial coverage included.', icon: Navigation, color: 'text-cyan-600', bg: 'bg-cyan-100' },
+  { id: 'Free Extra Hours', title: 'Free Extra Hours', desc: 'Extended coverage duration.', icon: Clock, color: 'text-rose-600', bg: 'bg-rose-100' },
+  { id: 'Complimentary Gift', title: 'Complimentary Gift', desc: 'Special add-on gift.', icon: Gift, color: 'text-purple-600', bg: 'bg-purple-100' },
+  { id: 'Festival Offer', title: 'Festival Offer', desc: 'Seasonal special promotion.', icon: Calendar, color: 'text-orange-600', bg: 'bg-orange-100' },
+  { id: 'Limited Time Offer', title: 'Limited Time Offer', desc: 'Time-sensitive deal.', icon: Clock, color: 'text-red-600', bg: 'bg-red-100' },
 ];
 
 const Step1TypeSelection = ({ formData, setFormData, onNext }) => {

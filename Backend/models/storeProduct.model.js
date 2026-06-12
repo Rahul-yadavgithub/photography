@@ -41,26 +41,11 @@ const storeProductSchema = new mongoose.Schema({
     type: String
   }],
   
-  // Album Specifications
-  albumSize: {
-    type: String, // e.g., '12x18', '8x12', 'Custom'
-    trim: true
-  },
-  albumType: {
-    type: String, // e.g., 'Premium Album', 'Coffee Table Book'
-    trim: true
-  },
-  pageCount: {
-    type: String, // e.g., '30 Pages', '50 Pages'
-    trim: true
-  },
-  printQuality: {
-    type: String, // e.g., 'HD', 'Ultra HD', 'Standard'
-    trim: true
-  },
-  coverMaterial: {
-    type: String, // e.g., 'Leather', 'Acrylic'
-    trim: true
+  // Dynamic Specifications Map
+  specifications: {
+    type: Map,
+    of: String,
+    default: {}
   },
 
   // Pricing

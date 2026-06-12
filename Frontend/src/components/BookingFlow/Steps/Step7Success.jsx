@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const Step6Success = ({ data, onClose }) => {
+const Step7Success = ({ data, onClose }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,4 +64,4 @@ const Step6Success = ({ data, onClose }) => {
   );
 };
 
-export default Step6Success;
+export default Step7Success;

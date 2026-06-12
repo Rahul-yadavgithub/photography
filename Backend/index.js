@@ -14,7 +14,7 @@ const app = express();
 // Middleware
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()) 
-  : ['http://localhost:5173', 'http://localhost:3000'];
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -50,6 +50,9 @@ import poseRoutes from './routes/pose.routes.js';
 import publicPoseRoutes from './routes/publicPose.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import adminReviewRoutes from './routes/adminReview.routes.js';
+import webhookRoutes from './routes/webhook.routes.js';
+import filmDashboardRoutes from './routes/filmDashboard.routes.js';
+import offerRoutes from './routes/offer.routes.js';
 
 // Basic route for testing
 app.get('/api/health', (req, res) => {
@@ -73,6 +76,9 @@ app.use('/api/admin/poses', poseRoutes);
 app.use('/api/poses', publicPoseRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin/reviews', adminReviewRoutes);
+app.use('/api/webhooks', webhookRoutes);
+app.use('/api/films-dashboard', filmDashboardRoutes);
+app.use('/api/offers', offerRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

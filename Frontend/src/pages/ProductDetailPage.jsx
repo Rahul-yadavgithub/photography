@@ -4,12 +4,28 @@ import { getProductDetails } from '../api/storeService';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ChevronRight, Check, Image as ImageIcon } from 'lucide-react';
 import Breadcrumbs from '../components/common/Breadcrumbs';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import StoreInquiryModal from '../components/Store/StoreInquiryModal';
+import useSEO from '../hooks/useSEO';
 
 function ProductDetailPage() {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
+
+  useSEO({ title: product ? product.name : null, customSeoTitle: product?.seoTitle, customSeoDescription: product?.seoDescription });
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
+  const { isSignedIn } = useUser();
+  const { openSignIn } = useClerk();
+
+  const handleOrderInquiryClick = () => {
+    if (isSignedIn) {
+      setIsInquiryModalOpen(true);
+    } else {
+      openSignIn({ redirectUrl: window.location.href });
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -146,34 +162,32 @@ function ProductDetailPage() {
               </div>
 
               {/* Specifications Block */}
-              {(product.albumSize || product.albumType || product.pageCount || product.printQuality || product.coverMaterial) && (
+              {product.specifications && Object.keys(product.specifications).length > 0 && (
                 <div className="mb-10 bg-gray-50 rounded-xl p-6 border border-gray-100">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-4 flex items-center gap-2">
                     <Check className="w-4 h-4 text-[#ea580c]" /> Specifications
                   </h3>
                   <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
-                    {product.albumSize && (
-                      <div className="flex flex-col"><span className="text-gray-400 text-xs uppercase mb-1">Size</span><span className="font-medium text-gray-900">{product.albumSize}</span></div>
-                    )}
-                    {product.albumType && (
-                      <div className="flex flex-col"><span className="text-gray-400 text-xs uppercase mb-1">Type</span><span className="font-medium text-gray-900">{product.albumType}</span></div>
-                    )}
-                    {product.pageCount && (
-                      <div className="flex flex-col"><span className="text-gray-400 text-xs uppercase mb-1">Pages</span><span className="font-medium text-gray-900">{product.pageCount}</span></div>
-                    )}
-                    {product.printQuality && (
-                      <div className="flex flex-col"><span className="text-gray-400 text-xs uppercase mb-1">Print Quality</span><span className="font-medium text-gray-900">{product.printQuality}</span></div>
-                    )}
-                    {product.coverMaterial && (
-                      <div className="flex flex-col col-span-2"><span className="text-gray-400 text-xs uppercase mb-1">Cover Material</span><span className="font-medium text-gray-900">{product.coverMaterial}</span></div>
-                    )}
+                    {Object.entries(product.specifications).map(([key, value]) => {
+                      if (!value) return null; // Don't show empty fields
+                      const formattedKey = key
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/^./, str => str.toUpperCase());
+                      
+                      return (
+                        <div key={key} className={['coverMaterial', 'minimumOrderQuantity', 'customPhotoSupport', 'customDesignSupport', 'customLogoSupport'].includes(key) ? 'col-span-2 flex flex-col' : 'flex flex-col'}>
+                          <span className="text-gray-400 text-xs uppercase mb-1">{formattedKey}</span>
+                          <span className="font-medium text-gray-900">{value}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               <div className="mt-auto pt-6 border-t border-gray-100">
                 <button
-                  onClick={() => window.location.href = `https://wa.me/91XXXXXXXXXX?text=Hi, I am interested in ordering the ${product.name}.`}
+                  onClick={handleOrderInquiryClick}
                   className="w-full py-4 bg-gray-900 text-white rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-[#ea580c] transition-colors shadow-lg flex items-center justify-center gap-2"
                 >
                   Order Inquiry
@@ -187,6 +201,12 @@ function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      <StoreInquiryModal 
+        isOpen={isInquiryModalOpen} 
+        onClose={() => setIsInquiryModalOpen(false)} 
+        product={product} 
+      />
     </div>
   );
 }

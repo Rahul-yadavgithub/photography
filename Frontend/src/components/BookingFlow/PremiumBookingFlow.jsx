@@ -8,32 +8,19 @@ import Step2PackageSelection from './Steps/Step2PackageSelection';
 import Step3EventDetails from './Steps/Step3EventDetails';
 import Step4AdvancePlan from './Steps/Step4AdvancePlan';
 import Step5Review from './Steps/Step5Review';
-import Step6Success from './Steps/Step6Success';
+import Step6Payment from './Steps/Step6Payment';
+import Step7Success from './Steps/Step7Success';
 
 const PremiumBookingFlow = () => {
-  const { isBookingOpen, closeBookingFlow } = useBooking();
-  const [step, setStep] = useState(0);
-  const [bookingData, setBookingData] = useState({
-    name: '',
-    email: '',
-    mobile: '',
-    enquiryType: '',
-    packageId: null,
-    packageName: '',
-    selectedPackageSnapshot: null,
-    eventDate: null,
-    eventLocation: '',
-    notes: '',
-    specialInstructions: '',
-    extraRequirements: '',
-    advancePlan: null,
-    advancePercentage: 0,
-    selectedBenefits: []
-  });
-
-  const updateBookingData = (data) => {
-    setBookingData((prev) => ({ ...prev, ...data }));
-  };
+  const { 
+    isBookingOpen, 
+    isBookingPaused,
+    closeBookingFlow,
+    step,
+    setStep,
+    bookingData,
+    updateBookingData 
+  } = useBooking();
 
   const handleNext = (extraData) => {
     if (extraData && typeof extraData === 'string') {
@@ -43,33 +30,13 @@ const PremiumBookingFlow = () => {
   };
 
   const handleBack = () => {
-    if (step > 0 && step < 6) {
+    if (step > 0 && step < 7) {
       setStep((prev) => prev - 1);
     }
   };
 
   const handleClose = () => {
     closeBookingFlow();
-    setTimeout(() => {
-      setStep(0);
-      setBookingData({
-        name: '',
-        email: '',
-        mobile: '',
-        enquiryType: '',
-        packageId: null,
-        packageName: '',
-        selectedPackageSnapshot: null,
-        eventDate: null,
-        eventLocation: '',
-        notes: '',
-        specialInstructions: '',
-        extraRequirements: '',
-        advancePlan: null,
-        advancePercentage: 0,
-        selectedBenefits: []
-      });
-    }, 500);
   };
 
   const renderStep = () => {
@@ -87,7 +54,9 @@ const PremiumBookingFlow = () => {
       case 5:
         return <Step5Review data={bookingData} onNext={handleNext} onEditStep={setStep} />;
       case 6:
-        return <Step6Success data={bookingData} onClose={handleClose} />;
+        return <Step6Payment data={bookingData} onNext={handleNext} onEditStep={setStep} />;
+      case 7:
+        return <Step7Success data={bookingData} onClose={handleClose} />;
       default:
         return null;
     }
@@ -95,7 +64,7 @@ const PremiumBookingFlow = () => {
 
   return (
     <AnimatePresence>
-      {isBookingOpen && (
+      {(isBookingOpen && !isBookingPaused) && (
         <>
           {/* Backdrop */}
           <motion.div
@@ -119,7 +88,7 @@ const PremiumBookingFlow = () => {
               {/* Header / Draggable Area */}
               <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100/50 bg-white/80 backdrop-blur-xl sticky top-0 z-10">
                 <div className="flex items-center space-x-4">
-                  {step > 0 && step < 6 && (
+                  {step > 0 && step < 7 && (
                     <button 
                       onClick={handleBack}
                       className="flex items-center text-gray-700 hover:text-gray-900 transition-colors text-sm font-bold tracking-wide uppercase"
@@ -146,13 +115,13 @@ const PremiumBookingFlow = () => {
                 </button>
               </div>
 
-              {/* Progress Indicator (Steps 0-5) */}
-              {step < 6 && (
+              {/* Progress Indicator (Steps 0-6) */}
+              {step < 7 && (
                 <div className="h-1 bg-gray-50 w-full relative">
                   <motion.div 
                     className="absolute top-0 left-0 h-full bg-gray-900"
                     initial={{ width: 0 }}
-                    animate={{ width: `${((step + 1) / 6) * 100}%` }}
+                    animate={{ width: `${((step + 1) / 7) * 100}%` }}
                     transition={{ duration: 0.4 }}
                   />
                 </div>

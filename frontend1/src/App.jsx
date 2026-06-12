@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import SessionTimeoutManager from './components/auth/SessionTimeoutManager';
+import useSEO from './hooks/useSEO';
 
 // Layout
 import Layout from './components/layout/Layout';
@@ -47,6 +49,12 @@ import BookingsDashboard from './pages/Bookings/BookingsDashboard';
 import InquiryListView from './pages/Bookings/InquiryListView';
 import InquiryDetailView from './pages/Bookings/InquiryDetailView';
 
+// Store Orders Module
+import StoreOrdersLayout from './pages/StoreOrders/StoreOrdersLayout';
+import StoreOrdersDashboard from './pages/StoreOrders/StoreOrdersDashboard';
+import OrderListView from './pages/StoreOrders/OrderListView';
+import OrderDetailView from './pages/StoreOrders/OrderDetailView';
+
 // Global Website CMS Module
 import WebsiteContentLayout from './pages/WebsiteContent/WebsiteContentLayout';
 import HeroEditor from './pages/WebsiteContent/Sections/HeroEditor';
@@ -57,17 +65,15 @@ import ContactEditor from './pages/WebsiteContent/Global/ContactEditor';
 import CustomersDashboard from './pages/Customers/CustomersDashboard';
 
 function App() {
-  return (
-    <>
-      <SignedOut>
-        {/* If user is not signed in, redirect them to Clerk's sign in page */}
-        <RedirectToSignIn />
-      </SignedOut>
+  // Global SEO wrapper for Admin Dashboard
+  useSEO();
 
-      <SignedIn>
-        <NotificationProvider>
-          <Layout>
-            <Routes>
+  return (
+    <ProtectedRoute>
+      <SessionTimeoutManager />
+      <NotificationProvider>
+        <Layout>
+          <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/packages" element={<PackagesDashboard />} />
@@ -104,11 +110,18 @@ function App() {
               <Route path="collections" element={<CuratedCollectionsManager />} />
             </Route>
 
-            {/* Bookings & Inquiries Module Routes */}
+            {/* Bookings Module */}
             <Route path="/bookings" element={<BookingsLayout />}>
               <Route index element={<BookingsDashboard />} />
               <Route path="category/:categoryId" element={<InquiryListView />} />
               <Route path="inquiry/:inquiryId" element={<InquiryDetailView />} />
+            </Route>
+
+            {/* Store Orders Module */}
+            <Route path="/store-orders" element={<StoreOrdersLayout />}>
+              <Route index element={<StoreOrdersDashboard />} />
+              <Route path="category/:categoryId" element={<OrderListView />} />
+              <Route path="order/:orderId" element={<OrderDetailView />} />
             </Route>
 
             {/* Global Website CMS Module Routes */}
@@ -132,9 +145,8 @@ function App() {
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>
-        </NotificationProvider>
-      </SignedIn>
-    </>
+      </NotificationProvider>
+    </ProtectedRoute>
   );
 }
 

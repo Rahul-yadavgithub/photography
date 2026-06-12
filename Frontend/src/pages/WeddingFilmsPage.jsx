@@ -3,6 +3,8 @@ import { Play, Film, Smartphone, Camera, Image as ImageIcon, Check, Star, Chevro
 import { Link, useNavigate } from 'react-router-dom';
 import { useIntent } from '../context/IntentContext';
 import { getFilmCategories, getAllFilms, getReels } from '../api/filmService';
+import PremiumVideoModal from '../components/shared/PremiumVideoModal';
+import useSEO from '../hooks/useSEO';
 
 // --- COMPONENTS ---
 
@@ -66,8 +68,7 @@ const CategoriesSection = ({ categories }) => {
   );
 };
 
-const FeaturedFilmsSection = ({ films }) => {
-  const [activeVideo, setActiveVideo] = useState(null);
+const FeaturedFilmsSection = ({ films, onVideoClick }) => {
   const featuredFilms = films.filter(f => f.featured).slice(0, 6);
 
   if (featuredFilms.length === 0) return null;
@@ -83,7 +84,7 @@ const FeaturedFilmsSection = ({ films }) => {
         {/* Horizontal Marquee */}
         <div className="flex gap-8 overflow-x-auto pb-10 hide-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
           {featuredFilms.map((film, idx) => (
-            <div key={idx} className="shrink-0 w-[85vw] md:w-[60vw] lg:w-[40vw] group relative rounded-xl overflow-hidden cursor-pointer snap-center shadow-xl hover:shadow-2xl transition-all duration-500" onClick={() => setActiveVideo(film)}>
+            <div key={idx} className="shrink-0 w-[85vw] md:w-[60vw] lg:w-[40vw] group relative rounded-xl overflow-hidden cursor-pointer snap-center shadow-xl hover:shadow-2xl transition-all duration-500" onClick={() => onVideoClick(film)}>
               <div className="aspect-[16/9] w-full relative overflow-hidden rounded-xl bg-black">
                 {film.thumbnailType === 'video' && film.thumbnailVideo ? (
                   <video src={film.thumbnailVideo} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
@@ -113,31 +114,11 @@ const FeaturedFilmsSection = ({ films }) => {
           ))}
         </div>
       </div>
-
-      {/* Video Modal */}
-      {activeVideo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in zoom-in duration-300">
-          <button onClick={() => setActiveVideo(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors bg-black/50 p-2 rounded-full backdrop-blur-md">
-            <X className="w-8 h-8" />
-          </button>
-          <div className="w-full max-w-6xl aspect-[16/9] bg-black rounded-lg overflow-hidden shadow-2xl relative mx-4">
-            {activeVideo.videoSource === 'youtube' && (
-              <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${activeVideo.videoUrl.split('v=')[1] || activeVideo.videoUrl.split('/').pop()}`} title={activeVideo.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-            )}
-            {activeVideo.videoSource === 'vimeo' && (
-              <iframe className="w-full h-full" src={`https://player.vimeo.com/video/${activeVideo.videoUrl.split('/').pop()}`} title={activeVideo.title} frameBorder="0" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen></iframe>
-            )}
-            {(activeVideo.videoSource === 'upload' || activeVideo.videoSource === 'url') && (
-              <video src={activeVideo.videoUrl} autoPlay controls className="w-full h-full"></video>
-            )}
-          </div>
-        </div>
-      )}
     </section>
   );
 };
 
-const ReelsSection = ({ reels }) => {
+const ReelsSection = ({ reels, onReelClick }) => {
   if (!reels || reels.length === 0) return null;
   const trendingReels = reels.filter(r => r.trending).slice(0, 10);
   if (trendingReels.length === 0) trendingReels.push(...reels.slice(0, 10));
@@ -151,8 +132,19 @@ const ReelsSection = ({ reels }) => {
 
       <div className="flex overflow-x-auto gap-6 px-6 md:px-12 pb-8 hide-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
         {trendingReels.map((reel, idx) => (
-          <div key={idx} className="shrink-0 w-[240px] md:w-[280px] aspect-[9/16] relative rounded-xl overflow-hidden group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 snap-center">
-            <img src={reel.thumbnail || "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=400"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={reel.title} />
+          <div 
+            key={idx} 
+            onClick={() => onReelClick(reel)}
+            className="shrink-0 w-[240px] md:w-[280px] aspect-[9/16] relative rounded-xl overflow-hidden group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 snap-center bg-gradient-to-br from-purple-600 via-pink-500 to-[#ea580c]"
+          >
+            {reel.thumbnail ? (
+              <img src={reel.thumbnail} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={reel.title} />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center opacity-80 mix-blend-overlay">
+                <Smartphone className="w-16 h-16 text-white/50 mb-4" />
+                <span className="text-white/50 text-xs tracking-widest font-bold uppercase">Instagram Reel</span>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80"></div>
 
             {reel.trending && (
@@ -368,10 +360,12 @@ const PackagesSection = ({ onSelectPackage }) => {
 }
 
 export default function WeddingFilmsPage() {
+  useSEO();
   const [categories, setCategories] = useState([]);
   const [films, setFilms] = useState([]);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeVideo, setActiveVideo] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -417,14 +411,17 @@ export default function WeddingFilmsPage() {
     <div className="bg-[#f8fafc] min-h-screen font-sans w-full text-gray-900">
       <HeroSection />
       <CategoriesSection categories={categories} />
-      <FeaturedFilmsSection films={films} />
-      <ReelsSection reels={reels} />
+      <FeaturedFilmsSection films={films} onVideoClick={setActiveVideo} />
+      <ReelsSection reels={reels} onReelClick={setActiveVideo} />
       <DeliverablesSection />
       <ComparisonSection />
       <TestimonialsSection />
       <FaqSection />
       <CtaSection />
       <PackagesSection />
+
+      {/* Global Video Modal */}
+      <PremiumVideoModal video={activeVideo} onClose={() => setActiveVideo(null)} />
     </div>
   );
 }

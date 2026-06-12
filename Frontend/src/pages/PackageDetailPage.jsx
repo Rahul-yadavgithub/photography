@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getPackageById } from '../api/packageService';
-import { Camera, Video, Image as ImageIcon, Film, BookOpen, Navigation, Play, Plus, Check } from 'lucide-react';
+import { getActiveOffers } from '../api/offerService';
+import { Camera, Video, Image as ImageIcon, Film, BookOpen, Navigation, Play, Plus, Check, Tag } from 'lucide-react';
 import { useIntent } from '../context/IntentContext';
 import EditorialHero from '../components/common/EditorialHero';
+import useSEO from '../hooks/useSEO';
 
 const ICON_MAP = {
   camera: Camera,
@@ -18,14 +20,26 @@ const ICON_MAP = {
 function PackageDetailPage() {
   const { id } = useParams();
   const [pkg, setPkg] = useState(null);
+  const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { executeProtectedAction } = useIntent();
+
+  useSEO({ title: pkg ? pkg.name : null, customSeoTitle: pkg?.seoTitle, customSeoDescription: pkg?.seoDescription });
 
   useEffect(() => {
     const fetchPkg = async () => {
       try {
-        const data = await getPackageById(id);
+        const [data, offersData] = await Promise.all([
+          getPackageById(id),
+          getActiveOffers()
+        ]);
         setPkg(data);
+        
+        // Find applicable offers for this package
+        const applicableOffers = offersData.filter(o => 
+          o.applicablePackages.some(ap => ap._id === data._id || ap.id === data._id || ap === data._id || ap.slug === data.slug || ap._id === data.slug)
+        );
+        setOffers(applicableOffers);
       } catch (err) {
         console.error(err);
       } finally {
@@ -77,6 +91,88 @@ function PackageDetailPage() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        {/* Dynamic Pricing / Savings Hierarchy */}
+        {pkg.showPricing !== false && offers.length > 0 && offers.some(o => o.type === 'Percentage Discount' || o.type === 'Flat Discount') && (
+          <div className="bg-white rounded-3xl p-8 border border-[#ea580c]/20 shadow-[0_8px_30px_rgb(234,88,12,0.1)] mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="px-3 py-1 bg-red-100 text-red-600 font-bold text-xs uppercase tracking-wider rounded-full">Limited Offer</span>
+                <span className="text-gray-400 font-bold line-through text-lg">₹{pkg.price}</span>
+              </div>
+              <div className="flex items-end gap-2">
+                <span className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+                  ₹{
+                    offers.reduce((lowest, o) => {
+                      if (o.type === 'Percentage Discount') {
+                        const price = pkg.price - (pkg.price * (o.discountPercentage / 100));
+                        return price < lowest ? price : lowest;
+                      }
+                      if (o.type === 'Flat Discount') {
+                        const price = pkg.price - o.flatDiscountAmount;
+                        return price < lowest ? price : lowest;
+                      }
+                      return lowest;
+                    }, pkg.price)
+                  }
+                </span>
+                <span className="text-gray-500 font-medium mb-1">/ package</span>
+              </div>
+            </div>
+            
+            <div className="bg-[#ea580c] text-white px-6 py-4 rounded-2xl shrink-0 flex items-center gap-4 w-full md:w-auto justify-center">
+              <div className="text-right">
+                <div className="text-xs font-bold text-orange-200 uppercase tracking-widest mb-1">You Save</div>
+                <div className="text-2xl font-black tracking-tight">
+                  ₹{
+                    pkg.price - offers.reduce((lowest, o) => {
+                      if (o.type === 'Percentage Discount') {
+                        const price = pkg.price - (pkg.price * (o.discountPercentage / 100));
+                        return price < lowest ? price : lowest;
+                      }
+                      if (o.type === 'Flat Discount') {
+                        const price = pkg.price - o.flatDiscountAmount;
+                        return price < lowest ? price : lowest;
+                      }
+                      return lowest;
+                    }, pkg.price)
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Special Offers & Benefits Section */}
+        {offers.length > 0 && (
+          <section className="mb-20">
+            <h3 className="text-2xl font-serif text-gray-900 mb-6 flex items-center gap-3">
+              <Tag className="w-6 h-6 text-[#ea580c]" /> Special Offers & Benefits
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {offers.map(offer => (
+                <div key={offer._id} className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100 flex items-start gap-4">
+                  <div className="shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                    <Tag className="w-5 h-5 text-[#ea580c]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-1 bg-[#ea580c] text-white text-[10px] font-bold uppercase tracking-wider rounded">
+                        {offer.badgeText}
+                      </span>
+                      {offer.validUntil && (
+                         <span className="text-xs font-medium text-orange-800">
+                           Valid till {new Date(offer.validUntil).toLocaleDateString()}
+                         </span>
+                      )}
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-1">{offer.title}</h4>
+                    <p className="text-sm text-gray-600 leading-relaxed">{offer.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* 2. Included Experiences Section */}
