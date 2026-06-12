@@ -15,7 +15,18 @@ function Footer() {
           
           {/* 1. Brand Information */}
           <div className="lg:col-span-1 flex flex-col">
-            <h3 className="text-2xl font-serif font-light tracking-wide text-white mb-6">GuideStudio</h3>
+            <div className="mb-6 inline-block w-max relative group cursor-pointer">
+              <div className="relative flex items-center justify-center rounded-full transition-all duration-700 hover:scale-105 hover:-rotate-3 shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_40px_rgba(212,175,55,0.6)]">
+                <img 
+                  src="https://res.cloudinary.com/dzbliymin/image/upload/v1781240581/logo-Photoroom-removebg-preview_uojyrj.png" 
+                  alt="Shubham Studio Logo" 
+                  className="w-24 h-24 object-cover rounded-full border-[3px] border-[#D4AF37]"
+                />
+                {/* Premium ring animation */}
+                <div className="absolute -inset-2 rounded-full border border-[#D4AF37] opacity-0 group-hover:animate-[spin_4s_linear_infinite] group-hover:opacity-30 transition-opacity duration-700"></div>
+                <div className="absolute inset-0 rounded-full bg-[#D4AF37] opacity-0 group-hover:animate-ping group-hover:opacity-10 transition-opacity duration-700"></div>
+              </div>
+            </div>
             <p className="text-[#94A3B8] text-sm leading-relaxed mb-8">
               Capturing timeless moments through cinematic wedding films and premium photography experiences.
             </p>
@@ -88,7 +99,7 @@ function Footer() {
 
         {/* Bottom Legal Bar */}
         <div className="max-w-[1200px] mx-auto border-t border-white/10 pt-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[#94A3B8] text-xs">© 2026 GuideStudio. All Rights Reserved.</p>
+          <p className="text-[#94A3B8] text-xs">© 2026 Shubham Studio. All Rights Reserved.</p>
           <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 text-[#94A3B8] text-xs">
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>

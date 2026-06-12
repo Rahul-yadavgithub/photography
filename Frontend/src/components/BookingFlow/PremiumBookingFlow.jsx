@@ -4,8 +4,8 @@ import { useBooking } from '../../context/BookingContext';
 import { X, ChevronLeft } from 'lucide-react';
 import Step0Identification from './Steps/Step0Identification';
 import Step1EnquiryType from './Steps/Step1EnquiryType';
-import Step2EventDate from './Steps/Step2EventDate';
-import Step3Requirements from './Steps/Step3Requirements';
+import Step2PackageSelection from './Steps/Step2PackageSelection';
+import Step3EventDetails from './Steps/Step3EventDetails';
 import Step4AdvancePlan from './Steps/Step4AdvancePlan';
 import Step5Review from './Steps/Step5Review';
 import Step6Success from './Steps/Step6Success';
@@ -18,9 +18,17 @@ const PremiumBookingFlow = () => {
     email: '',
     mobile: '',
     enquiryType: '',
+    packageId: null,
+    packageName: '',
+    selectedPackageSnapshot: null,
     eventDate: null,
-    requirements: {},
+    eventLocation: '',
+    notes: '',
+    specialInstructions: '',
+    extraRequirements: '',
     advancePlan: null,
+    advancePercentage: 0,
+    selectedBenefits: []
   });
 
   const updateBookingData = (data) => {
@@ -49,9 +57,17 @@ const PremiumBookingFlow = () => {
         email: '',
         mobile: '',
         enquiryType: '',
+        packageId: null,
+        packageName: '',
+        selectedPackageSnapshot: null,
         eventDate: null,
-        requirements: {},
+        eventLocation: '',
+        notes: '',
+        specialInstructions: '',
+        extraRequirements: '',
         advancePlan: null,
+        advancePercentage: 0,
+        selectedBenefits: []
       });
     }, 500);
   };
@@ -63,9 +79,9 @@ const PremiumBookingFlow = () => {
       case 1:
         return <Step1EnquiryType data={bookingData} updateData={updateBookingData} onNext={handleNext} />;
       case 2:
-        return <Step2EventDate data={bookingData} updateData={updateBookingData} onNext={handleNext} />;
+        return <Step2PackageSelection data={bookingData} updateData={updateBookingData} onNext={handleNext} />;
       case 3:
-        return <Step3Requirements data={bookingData} updateData={updateBookingData} onNext={handleNext} />;
+        return <Step3EventDetails data={bookingData} updateData={updateBookingData} onNext={handleNext} />;
       case 4:
         return <Step4AdvancePlan data={bookingData} updateData={updateBookingData} onNext={handleNext} />;
       case 5:

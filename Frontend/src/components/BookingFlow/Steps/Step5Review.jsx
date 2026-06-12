@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, AlertCircle, X } from 'lucide-react';
+import { Edit2, AlertCircle, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@clerk/clerk-react';
 
@@ -36,8 +36,14 @@ const Step5Review = ({ data, onNext, onEditStep }) => {
           customerName: data.name,
           mobileNumber: data.mobile,
           enquiryType: data.enquiryType,
+          packageId: data.packageId,
+          packageName: data.packageName,
+          selectedPackageSnapshot: data.selectedPackageSnapshot,
           eventDate: data.eventDate,
-          requirements: data.requirements,
+          eventLocation: data.eventLocation,
+          notes: data.notes,
+          specialInstructions: data.specialInstructions,
+          extraRequirements: data.extraRequirements,
           advancePlan: data.advancePlan,
           advancePercentage: data.advancePercentage,
           selectedBenefits: data.selectedBenefits,
@@ -60,19 +66,22 @@ const Step5Review = ({ data, onNext, onEditStep }) => {
   };
 
   const renderSection = (title, stepIndex, content) => (
-    <div className="py-4 border-b border-gray-100 last:border-0 group">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">{title}</h3>
+    <div className="py-5 border-b border-gray-100 last:border-0 group">
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">{title}</h3>
         <button 
           onClick={() => onEditStep(stepIndex)}
           className="text-gray-300 hover:text-gray-900 transition-colors p-1 opacity-0 group-hover:opacity-100"
+          title="Edit"
         >
           <Edit2 className="w-3.5 h-3.5" />
         </button>
       </div>
-      <div className="text-gray-900 text-sm">{content}</div>
+      <div className="text-gray-900">{content}</div>
     </div>
   );
+
+  const pkg = data.selectedPackageSnapshot;
 
   return (
     <div className="flex flex-col h-full max-w-2xl mx-auto w-full pt-4 relative">
@@ -103,55 +112,87 @@ const Step5Review = ({ data, onNext, onEditStep }) => {
       </AnimatePresence>
 
       <div className="mb-8 text-center mt-2">
-        <h2 className="text-3xl font-sans font-light tracking-tight text-gray-900 mb-2">Review Details</h2>
+        <h2 className="text-3xl font-sans font-light tracking-tight text-gray-900 mb-2">Review Booking</h2>
         <p className="text-gray-500 text-sm">Please verify your booking details before confirming.</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-1 pb-8">
-        <div className="bg-gray-50 rounded-3xl p-6 sm:p-8">
+        <div className="bg-gray-50 rounded-[2rem] p-6 sm:p-8 border border-gray-100">
           
           {renderSection('Personal Details', 0, (
             <div>
-              <p className="font-medium text-lg">{data.name}</p>
-              <p className="text-gray-500">{data.mobile}</p>
+              <p className="font-bold text-lg">{data.name}</p>
+              <p className="text-gray-500 text-sm">{data.mobile}</p>
             </div>
           ))}
 
-          {renderSection('Event Information', 1, (
-            <div className="flex gap-4">
+          {renderSection('Event Information', 3, (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
                 <p className="text-gray-500 text-xs mb-1">Type</p>
-                <p className="font-medium">{data.enquiryType}</p>
+                <p className="font-bold text-sm">{data.enquiryType}</p>
               </div>
-              <div className="w-px bg-gray-200"></div>
               <div>
                 <p className="text-gray-500 text-xs mb-1">Date</p>
-                <p className="font-medium">
-                  {new Date(data.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                <p className="font-bold text-sm">
+                  {data.eventDate ? new Date(data.eventDate).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'Not set'}
                 </p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs mb-1">Location</p>
+                <p className="font-bold text-sm">{data.eventLocation || 'Not set'}</p>
               </div>
             </div>
           ))}
 
-          {renderSection('Requirements', 3, (
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-              {Object.entries(data.requirements).map(([key, value]) => (
-                <div key={key}>
-                  <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-0.5">{key}</p>
-                  <p className="font-medium capitalize">{value}</p>
+          {renderSection('Selected Package', 2, (
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className="font-bold text-lg text-gray-900">{pkg?.name || data.packageName}</h4>
+                  <p className="text-gray-500 text-sm mt-0.5">
+                    ₹{pkg?.discountPrice ? pkg.discountPrice.toLocaleString() : pkg?.price?.toLocaleString() || 'Custom'}
+                  </p>
                 </div>
-              ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                {pkg?.features?.slice(0, 4).map((feature, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-600">{feature.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {(data.specialInstructions || data.extraRequirements || data.notes) && renderSection('Customer Notes', 3, (
+            <div className="space-y-4">
+              {data.specialInstructions && (
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Special Instructions</p>
+                  <p className="text-sm text-gray-800">{data.specialInstructions}</p>
+                </div>
+              )}
+              {data.extraRequirements && (
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Extra Requirements</p>
+                  <p className="text-sm text-gray-800">{data.extraRequirements}</p>
+                </div>
+              )}
             </div>
           ))}
 
           {renderSection('Payment Plan', 4, (
-            <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 mt-2">
+            <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mt-2">
               <div>
-                <p className="font-bold">{data.advancePlan}</p>
-                <p className="text-xs text-gray-500">{data.advancePercentage}% Advance required</p>
+                <p className="font-bold text-gray-900">{data.advancePlan}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{data.advancePercentage}% Advance required to secure booking</p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] uppercase tracking-wider text-green-500 font-bold">Selected</p>
+                <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-green-600" />
+                </div>
               </div>
             </div>
           ))}

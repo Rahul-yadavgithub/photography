@@ -3,7 +3,12 @@ import Package from '../models/package.model.js';
 // Get all packages
 export const getPackages = async (req, res) => {
     try {
-        const packages = await Package.find().sort({ isFeatured: -1, order: 1, createdAt: -1 });
+        const query = {};
+        if (req.query.category) {
+            query.category = req.query.category;
+        }
+        
+        const packages = await Package.find(query).sort({ isFeatured: -1, order: 1, createdAt: -1 });
         res.status(200).json({ success: true, data: packages });
     } catch (error) {
         console.error('Error fetching packages:', error);

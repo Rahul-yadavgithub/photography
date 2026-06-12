@@ -22,9 +22,30 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  packageId: {
+    type: mongoose.Schema.Types.Mixed,
+  },
+  packageName: {
+    type: String,
+  },
+  selectedPackageSnapshot: {
+    type: mongoose.Schema.Types.Mixed,
+  },
   eventDate: {
     type: Date,
     required: true,
+  },
+  eventLocation: {
+    type: String,
+  },
+  notes: {
+    type: String,
+  },
+  specialInstructions: {
+    type: String,
+  },
+  extraRequirements: {
+    type: String,
   },
   requirements: {
     type: mongoose.Schema.Types.Mixed,

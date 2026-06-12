@@ -1,7 +1,10 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api` : 'http://localhost:5000/api';
+let baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+if (baseUrl.endsWith('/api')) baseUrl = baseUrl.slice(0, -4);
+const API_BASE_URL = `${baseUrl}/api`;
 
 export const useApi = () => {
   const { getToken } = useAuth();

@@ -31,9 +31,12 @@ export const getCategoryBySlug = async (slug) => {
 };
 
 
-export const getPackages = async () => {
+export const getPackages = async (category) => {
   try {
-    const response = await fetch(`${API_URL}/api/packages`);
+    const url = category 
+      ? `${API_URL}/api/packages?category=${encodeURIComponent(category)}`
+      : `${API_URL}/api/packages`;
+    const response = await fetch(url);
     const data = await response.json();
     if (data.success) {
       return data.data;
