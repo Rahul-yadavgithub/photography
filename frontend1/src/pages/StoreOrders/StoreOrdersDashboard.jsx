@@ -1,9 +1,11 @@
+import { useApi } from '../../hooks/useApi';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Clock, CheckCircle2, AlertCircle, Camera, CheckSquare, CalendarDays } from 'lucide-react';
 import { getDaysRemaining } from './utils';
 
 const StoreOrdersDashboard = () => {
+  const { fetchWithAuth } = useApi();
   const navigate = useNavigate();
   const [inquiries, setInquiries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -12,7 +14,8 @@ const StoreOrdersDashboard = () => {
     const fetchBookings = async () => {
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-        const response = await fetch(`${backendUrl}/api/bookings`);
+        const fetchResult = await fetchWithAuth('/api/bookings');
+        const response = { ok: true, json: async () => fetchResult };
         const result = await response.json();
         if (result.success) {
           const productOrders = result.data.filter(b => b.inquiryType === 'product');

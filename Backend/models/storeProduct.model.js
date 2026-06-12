@@ -64,6 +64,12 @@ const storeProductSchema = new mongoose.Schema({
     max: 100,
     default: 0
   },
+  advancePercentage: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0
+  },
 
   // Status and Meta
   stockStatus: {
@@ -86,9 +92,22 @@ const storeProductSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Pre-save hook to generate slug
-storeProductSchema.pre('validate', function() {
+storeProductSchema.pre('validate', async function() {
   if (this.name && (!this.slug || this.isModified('name'))) {
-    this.slug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    let baseSlug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    let uniqueSlug = baseSlug;
+    
+    // Ensure slug is unique
+    if (this.constructor && this.constructor.findOne) {
+      let existingProduct = await this.constructor.findOne({ slug: uniqueSlug, _id: { $ne: this._id } });
+      let count = 1;
+      while (existingProduct) {
+        uniqueSlug = `${baseSlug}-${count}`;
+        existingProduct = await this.constructor.findOne({ slug: uniqueSlug, _id: { $ne: this._id } });
+        count++;
+      }
+    }
+    this.slug = uniqueSlug;
   }
   
   // Auto-calculate discount percentage if not explicitly set and salePrice exists

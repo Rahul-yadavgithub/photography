@@ -4,9 +4,9 @@ import { getProductDetails } from '../api/storeService';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ChevronRight, Check, Image as ImageIcon } from 'lucide-react';
 import Breadcrumbs from '../components/common/Breadcrumbs';
-import { useUser, useClerk } from '@clerk/clerk-react';
-import StoreInquiryModal from '../components/Store/StoreInquiryModal';
+import { useUser } from '@clerk/clerk-react';
 import useSEO from '../hooks/useSEO';
+import { useCart } from '../context/CartContext';
 
 function ProductDetailPage() {
   const { slug } = useParams();
@@ -15,16 +15,10 @@ function ProductDetailPage() {
   useSEO({ title: product ? product.name : null, customSeoTitle: product?.seoTitle, customSeoDescription: product?.seoDescription });
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
-  const { isSignedIn } = useUser();
-  const { openSignIn } = useClerk();
+  const { addToCart } = useCart();
 
-  const handleOrderInquiryClick = () => {
-    if (isSignedIn) {
-      setIsInquiryModalOpen(true);
-    } else {
-      openSignIn({ redirectUrl: window.location.href });
-    }
+  const handleAddToCart = () => {
+    addToCart(product);
   };
 
   useEffect(() => {
@@ -187,10 +181,10 @@ function ProductDetailPage() {
 
               <div className="mt-auto pt-6 border-t border-gray-100">
                 <button
-                  onClick={handleOrderInquiryClick}
+                  onClick={handleAddToCart}
                   className="w-full py-4 bg-gray-900 text-white rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-[#ea580c] transition-colors shadow-lg flex items-center justify-center gap-2"
                 >
-                  Order Inquiry
+                  Add to Cart
                 </button>
                 <p className="text-center text-xs text-gray-600 mt-4">
                   For customization requests, please contact us directly.
@@ -201,12 +195,6 @@ function ProductDetailPage() {
           </div>
         </div>
       </div>
-
-      <StoreInquiryModal 
-        isOpen={isInquiryModalOpen} 
-        onClose={() => setIsInquiryModalOpen(false)} 
-        product={product} 
-      />
     </div>
   );
 }

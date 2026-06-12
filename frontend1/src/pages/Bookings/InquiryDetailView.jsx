@@ -1,9 +1,11 @@
+import { useApi } from '../../hooks/useApi';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, User, Phone, Mail, Calendar, MessageSquare, Package, CheckCircle2, XCircle, Clock, Check, MoreHorizontal, PhoneCall, Copy, CreditCard, AlertCircle } from 'lucide-react';
 import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
 
 const InquiryDetailView = () => {
+  const { fetchWithAuth } = useApi();
   const { inquiryId } = useParams();
   const navigate = useNavigate();
   
@@ -23,7 +25,8 @@ const InquiryDetailView = () => {
     try {
       setIsLoading(true);
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiryId}`);
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiryId}');
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       if (result.success) {
         const data = result.data;
@@ -41,9 +44,10 @@ const InquiryDetailView = () => {
     setIsProcessing(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}/approve`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}/approve', {
         method: 'PUT'
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -69,11 +73,12 @@ const InquiryDetailView = () => {
     setIsProcessing(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}/reject`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}/reject', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rejectionReason })
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -95,9 +100,10 @@ const InquiryDetailView = () => {
     setIsProcessing(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}', {
         method: 'DELETE'
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -117,11 +123,12 @@ const InquiryDetailView = () => {
   const handleLegacyStatusChange = async (newStatus) => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}/status`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}/status', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {

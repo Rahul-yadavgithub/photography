@@ -1,136 +1,107 @@
 import StoreCategory from '../models/storeCategory.model.js';
 import StoreProduct from '../models/storeProduct.model.js';
+import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/AppError.js';
 
 // --- CATEGORY CONTROLLERS ---
 
-export const getCategoriesAdmin = async (req, res) => {
-  try {
-    const categories = await StoreCategory.find().sort('displayOrder createdAt');
+export const getCategoriesAdmin = catchAsync(async (req, res, next) => {
+    const categories = await StoreCategory.find().sort('displayOrder createdAt').lean();
     res.status(200).json({ success: true, data: categories });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const createCategory = async (req, res) => {
-  try {
+export const createCategory = catchAsync(async (req, res, next) => {
     const category = new StoreCategory(req.body);
     await category.save();
     res.status(201).json({ success: true, data: category });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const updateCategory = async (req, res) => {
-  try {
+export const updateCategory = catchAsync(async (req, res, next) => {
     const category = await StoreCategory.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+    if (!category) return next(new AppError('Category not found', 404));
     res.status(200).json({ success: true, data: category });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const deleteCategory = async (req, res) => {
-  try {
+export const deleteCategory = catchAsync(async (req, res, next) => {
     const category = await StoreCategory.findByIdAndDelete(req.params.id);
-    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+    if (!category) return next(new AppError('Category not found', 404));
     // Note: In a real app, we might want to check if products belong to this category before deleting.
     res.status(200).json({ success: true, message: 'Category deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
 // --- PRODUCT CONTROLLERS ---
 
-export const getProductsAdmin = async (req, res) => {
-  try {
-    const products = await StoreProduct.find().populate('category', 'name slug').sort('-createdAt');
+export const getProductsAdmin = catchAsync(async (req, res, next) => {
+    const products = await StoreProduct.find().populate('category', 'name slug').sort('-createdAt').lean();
     res.status(200).json({ success: true, data: products });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const createProduct = async (req, res) => {
-  try {
+export const createProduct = catchAsync(async (req, res, next) => {
     const product = new StoreProduct(req.body);
     await product.save();
     res.status(201).json({ success: true, data: product });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const updateProduct = async (req, res) => {
-  try {
+export const updateProduct = catchAsync(async (req, res, next) => {
     const product = await StoreProduct.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    if (!product) return next(new AppError('Product not found', 404));
     res.status(200).json({ success: true, data: product });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const deleteProduct = async (req, res) => {
-  try {
+export const deleteProduct = catchAsync(async (req, res, next) => {
     const product = await StoreProduct.findByIdAndDelete(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    if (!product) return next(new AppError('Product not found', 404));
     res.status(200).json({ success: true, message: 'Product deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
 // --- PUBLIC APIs ---
 
-export const getPublicCategories = async (req, res) => {
-  try {
-    // Get active categories with product counts
-    const categories = await StoreCategory.find({ isActive: true }).sort('displayOrder createdAt');
+export const getPublicCategories = catchAsync(async (req, res, next) => {
+    // Get active categories
+    const categories = await StoreCategory.find({ isActive: true }).sort('displayOrder createdAt').lean();
     
-    // Optional: Aggregate product counts per category
-    const categoriesWithCounts = await Promise.all(categories.map(async (cat) => {
-        const count = await StoreProduct.countDocuments({ category: cat._id, isActive: true });
-        return { ...cat.toObject(), productCount: count };
+    // Fix N+1 Query Problem: Aggregate product counts in a single query
+    const categoryCounts = await StoreProduct.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+
+    // Map counts to categories
+    const countMap = categoryCounts.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {});
+
+    const categoriesWithCounts = categories.map(cat => ({
+      ...cat,
+      productCount: countMap[cat._id] || 0
     }));
 
     res.status(200).json({ success: true, data: categoriesWithCounts });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const getPublicProducts = async (req, res) => {
-  try {
+export const getPublicProducts = catchAsync(async (req, res, next) => {
     const { category } = req.query;
     let query = { isActive: true };
     
     if (category) {
-       const cat = await StoreCategory.findOne({ slug: category });
+       const cat = await StoreCategory.findOne({ slug: category }).lean();
        if (cat) query.category = cat._id;
     }
 
     const products = await StoreProduct.find(query)
       .populate('category', 'name slug')
-      .sort('-isFeatured displayOrder -createdAt');
+      .sort('-isFeatured displayOrder -createdAt')
+      .lean();
       
     res.status(200).json({ success: true, data: products });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});
 
-export const getProductBySlug = async (req, res) => {
-  try {
+export const getProductBySlug = catchAsync(async (req, res, next) => {
     const product = await StoreProduct.findOne({ slug: req.params.slug, isActive: true })
-      .populate('category', 'name slug');
+      .populate('category', 'name slug')
+      .lean();
       
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    if (!product) return next(new AppError('Product not found', 404));
     res.status(200).json({ success: true, data: product });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});

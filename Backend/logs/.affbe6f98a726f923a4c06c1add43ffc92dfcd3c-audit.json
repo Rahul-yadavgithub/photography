@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "/home/rahul-yadav/Documents/Photography/Backend/logs/.affbe6f98a726f923a4c06c1add43ffc92dfcd3c-audit.json",
+    "files": [
+        {
+            "date": 1781294258278,
+            "name": "/home/rahul-yadav/Documents/Photography/Backend/logs/security-2026-06-13.log",
+            "hash": "832167c35f00dca2f7786ec99984f499de5b1a4daea95596806420d6b825eb55"
+        }
+    ],
+    "hashType": "sha256"
+}

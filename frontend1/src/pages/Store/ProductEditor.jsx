@@ -70,7 +70,7 @@ const ProductEditor = () => {
     name: '', slug: '', shortDescription: '', description: '', category: '',
     bannerImage: '', coverImage: '', galleryImages: [],
     specifications: {},
-    basePrice: '', salePrice: '', discountPercentage: '',
+    basePrice: '', salePrice: '', discountPercentage: '', advancePercentage: 0,
     stockStatus: 'In Stock', isFeatured: false, isActive: true, displayOrder: 0
   });
 
@@ -359,6 +359,11 @@ const ProductEditor = () => {
                 Discount: {Math.round(((formData.basePrice - formData.salePrice) / formData.basePrice) * 100)}% OFF
               </div>
             )}
+            <div className="pt-2 border-t border-zinc-100">
+              <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Advance Payment (%)</label>
+              <input type="number" name="advancePercentage" min="0" max="100" value={formData.advancePercentage} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg" placeholder="0" />
+              <p className="text-[10px] text-zinc-500 mt-1">Percentage of total price required upfront. Set to 0 to require full payment.</p>
+            </div>
           </div>
         </div>
       </div>

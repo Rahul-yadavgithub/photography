@@ -3,8 +3,13 @@ import {
     getCategoriesAdmin, createCategory, updateCategory, deleteCategory,
     getProductsAdmin, createProduct, updateProduct, deleteProduct 
 } from '../controllers/store.controller.js';
+import { requireClerkAuth, requireAdmin } from '../middlewares/auth.js';
+import { adminLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = express.Router();
+
+// Apply auth and rate limiting to all admin routes
+router.use(requireClerkAuth, requireAdmin, adminLimiter);
 
 // Categories
 router.get('/categories', getCategoriesAdmin);

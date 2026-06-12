@@ -12,38 +12,40 @@ import {
   archiveBooking,
   deleteBooking
 } from '../controllers/booking.controller.js';
+import { requireClerkAuth, requireAdmin } from '../middlewares/auth.js';
+import { adminLimiter, inquiryLimiter } from '../middlewares/rateLimit.middleware.js';
 
 const router = express.Router();
 
 router.route('/')
-  .post(createBooking)
-  .get(getAllBookings); // Assuming public or admin token middleware is not yet strictly required based on the simple setup
+  .post(inquiryLimiter, createBooking)
+  .get(requireClerkAuth, requireAdmin, adminLimiter, getAllBookings);
 
 router.route('/verify-payment')
-  .post(verifyPayment);
+  .post(verifyPayment); // Public, relies on razorpay signature
 
 router.route('/user/:userId')
-  .get(getBookingsByUser);
+  .get(requireClerkAuth, getBookingsByUser);
 
 router.route('/:id')
-  .get(getBookingById);
+  .get(requireClerkAuth, requireAdmin, getBookingById);
 
 router.route('/:id/status')
-  .patch(updateBookingStatus);
+  .patch(requireClerkAuth, requireAdmin, adminLimiter, updateBookingStatus);
 
 router.route('/:id/approve')
-  .put(approveBooking);
+  .put(requireClerkAuth, requireAdmin, adminLimiter, approveBooking);
 
 router.route('/:id/reject')
-  .put(rejectBooking);
+  .put(requireClerkAuth, requireAdmin, adminLimiter, rejectBooking);
 
 router.route('/:id/cancel')
-  .put(cancelBooking);
+  .put(requireClerkAuth, cancelBooking);
 
 router.route('/:id/archive')
-  .put(archiveBooking);
+  .put(requireClerkAuth, archiveBooking);
 
 router.route('/:id')
-  .delete(deleteBooking);
+  .delete(requireClerkAuth, requireAdmin, adminLimiter, deleteBooking);
 
 export default router;

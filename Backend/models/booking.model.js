@@ -135,6 +135,12 @@ const bookingSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// Indexes for scalability and performance optimization
+bookingSchema.index({ userId: 1, isArchived: 1, createdAt: -1 });
+bookingSchema.index({ createdAt: -1 });
+bookingSchema.index({ bookingStatus: 1, paymentStatus: 1 });
+bookingSchema.index({ inquiryType: 1 });
+
 // Computed property for deletion eligibility
 bookingSchema.virtual('canDelete').get(function() {
   const status = this.bookingStatus || this.status;

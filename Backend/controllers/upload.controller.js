@@ -1,8 +1,9 @@
 import cloudinary from '../config/cloudinary.js';
 import streamifier from 'streamifier';
+import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/AppError.js';
 
-export const uploadMedia = async (req, res) => {
-  try {
+export const uploadMedia = catchAsync(async (req, res, next) => {
     let file = req.file;
     if (!file && req.files) {
       if (req.files.file && req.files.file.length > 0) file = req.files.file[0];
@@ -10,7 +11,7 @@ export const uploadMedia = async (req, res) => {
     }
 
     if (!file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+      return next(new AppError('No file uploaded.', 400));
     }
 
     // Determine folder from request body, default to packages
@@ -44,14 +45,9 @@ export const uploadMedia = async (req, res) => {
       url: result.secure_url,
       public_id: result.public_id,
     });
-  } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    res.status(500).json({ success: false, message: 'Media upload failed.', error: error.message });
-  }
-};
+});
 
-export const deleteMedia = async (req, res) => {
-  try {
+export const deleteMedia = catchAsync(async (req, res, next) => {
     const { public_id, url } = req.body;
     let targetPublicId = public_id;
 
@@ -66,7 +62,7 @@ export const deleteMedia = async (req, res) => {
     }
 
     if (!targetPublicId) {
-      return res.status(400).json({ success: false, message: 'Public ID or URL is required for deletion.' });
+      return next(new AppError('Public ID or URL is required for deletion.', 400));
     }
 
     // Since we use auto for upload, we might need to specify resource_type for deletion
@@ -83,8 +79,4 @@ export const deleteMedia = async (req, res) => {
       message: 'Media deleted successfully',
       result
     });
-  } catch (error) {
-    console.error('Cloudinary delete error:', error);
-    res.status(500).json({ success: false, message: 'Media deletion failed.', error: error.message });
-  }
-};
+});

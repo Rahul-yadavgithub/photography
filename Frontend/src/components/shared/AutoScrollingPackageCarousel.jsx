@@ -10,9 +10,7 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
   const trackRef = useRef(null);
   const [contentWidth, setContentWidth] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
-
-  // Duplicate packages to create a seamless infinite loop
-  const duplicatedPackages = [...packages, ...packages];
+  const [isOverflowing, setIsOverflowing] = useState(false);
 
   // Motion value for translating pixels
   const x = useMotionValue(0);
@@ -20,9 +18,26 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
   // Recalculate width on mount and window resize
   useEffect(() => {
     const measureWidth = () => {
-      if (trackRef.current) {
-        // Total scroll width divided by 2 gives the exact width of one set of packages (including gaps)
-        setContentWidth(trackRef.current.scrollWidth / 2);
+      if (trackRef.current && trackRef.current.parentElement) {
+        const containerWidth = trackRef.current.parentElement.offsetWidth;
+        
+        // Find the actual rendered width of the first item
+        const firstChild = trackRef.current.children[0];
+        
+        if (!firstChild) {
+          setIsOverflowing(false);
+          return;
+        }
+
+        const actualItemWidth = firstChild.offsetWidth;
+        const gap = 32; // Assuming gap-8 or md:gap-8 (approx 32px)
+        const childCount = packages.length;
+        
+        // Exact content width based on rendered DOM element
+        const exactContentWidth = (childCount * actualItemWidth) + ((childCount - 1) * gap);
+        
+        setIsOverflowing(exactContentWidth > containerWidth);
+        setContentWidth(exactContentWidth + gap); // Include the final gap for looping offset
       }
     };
 
@@ -35,12 +50,11 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
     return () => window.removeEventListener('resize', measureWidth);
   }, [packages]);
 
-  // Infinite Scroll Animation Loop
   const speed = -1; // pixels per frame (negative moves left)
   
   useAnimationFrame((time, delta) => {
-    // Pause if user is hovering, dragging, or if width hasn't been measured yet
-    if (isHovered || isDragging || contentWidth === 0) return;
+    // Pause if user is hovering, dragging, width hasn't been measured, or if NOT overflowing
+    if (isHovered || isDragging || contentWidth === 0 || !isOverflowing) return;
 
     let moveBy = speed * (delta / 16);
     let currentX = x.get();
@@ -58,12 +72,14 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
 
   // Handle User Panning/Dragging (Touch & Mouse)
   const handlePanStart = () => {
+    if (!isOverflowing) return;
     setIsDragging(true);
     setHasDragged(false);
     if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
   };
 
   const handlePan = (event, info) => {
+    if (!isOverflowing) return;
     setHasDragged(true);
     let currentX = x.get() + info.delta.x;
     
@@ -114,13 +130,13 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
     >
       <motion.div 
         ref={trackRef}
-        className="flex w-max gap-5 md:gap-8 cursor-grab active:cursor-grabbing px-4 md:px-8 py-8"
-        style={{ x }}
-        onPanSessionStart={handlePanStart}
-        onPan={handlePan}
-        onPanSessionEnd={handlePanEnd}
+        className={`flex ${isOverflowing ? 'w-max cursor-grab active:cursor-grabbing px-4 md:px-8 py-8' : 'justify-center w-full px-4 md:px-8 py-8'} gap-5 md:gap-8`}
+        style={isOverflowing ? { x } : {}}
+        onPanSessionStart={isOverflowing ? handlePanStart : undefined}
+        onPan={isOverflowing ? handlePan : undefined}
+        onPanSessionEnd={isOverflowing ? handlePanEnd : undefined}
       >
-        {duplicatedPackages.map((pkg, idx) => {
+        {(isOverflowing ? [...packages, ...packages] : packages).map((pkg, idx) => {
           const key = `${pkg.id || pkg._id}-${idx}`;
           
           return (

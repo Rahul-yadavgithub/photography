@@ -4,6 +4,7 @@ import { Heart, ChevronDown, Play, Maximize2, Camera, Clock, Info, Check, X, Boo
 import { Link } from 'react-router-dom';
 import { getCategories, getAllPublishedPoses, getPublishedPosesByCategory } from '../api/inspirationService';
 import useSEO from '../hooks/useSEO';
+import InfiniteCarousel from '../components/common/InfiniteCarousel';
 
 // --- DATA ---
 // Static Data removed. Using dynamic data from API.
@@ -144,9 +145,9 @@ const PoseGallerySection = ({ poses, savedItems, toggleSave, openModal, loading 
   const row2 = poses.slice(half);
 
   const renderRow = (rowPoses, isReverse) => (
-    <div className="flex w-full overflow-hidden group/marquee py-4">
-      <div className={`flex w-max space-x-6 px-3 ${isReverse ? 'animate-marquee-reverse' : 'animate-marquee'} group-hover/marquee:[animation-play-state:paused]`}>
-        {[...rowPoses, ...rowPoses, ...rowPoses, ...rowPoses].map((pose, idx) => {
+    <div className="w-full py-4 relative">
+      <InfiniteCarousel speed={isReverse ? -1.5 : 1.5} gap={24}>
+        {rowPoses.map((pose, idx) => {
           const isSaved = savedItems.includes(pose._id);
           return (
             <div key={`${pose._id}-${idx}`} className="w-[280px] md:w-[320px] premium-card relative group overflow-hidden cursor-pointer flex flex-col shrink-0">
@@ -183,7 +184,7 @@ const PoseGallerySection = ({ poses, savedItems, toggleSave, openModal, loading 
             </div>
           );
         })}
-      </div>
+      </InfiniteCarousel>
     </div>
   );
 

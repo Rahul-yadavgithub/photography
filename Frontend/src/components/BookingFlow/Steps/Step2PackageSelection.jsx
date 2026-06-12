@@ -53,11 +53,7 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
 
   const handleMoreDetails = (pkg) => {
     pauseBookingFlow();
-    // Assuming the category slug is similar to enquiryType (lowercased)
-    // and package slug or id can be used as a hash to scroll to.
-    const categorySlug = data.enquiryType.toLowerCase().replace(/\\s+/g, '-');
-    const packageHash = pkg.slug || pkg._id;
-    navigate(`/category/${categorySlug}#${packageHash}`);
+    navigate(`/packages/${pkg._id}`);
   };
 
   if (loading) {
@@ -84,13 +80,13 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
   }
 
   return (
-    <div className="flex flex-col h-full max-w-5xl mx-auto w-full pt-4">
+    <div className="flex flex-col w-full max-w-5xl mx-auto pt-4 pb-8">
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-sans font-light tracking-tight text-gray-900 mb-2">Choose Your Package</h2>
         <p className="text-gray-500 text-sm">Select the perfect package for your {data.enquiryType} Photography.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-y-auto pb-8 px-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-2">
         {packages.map((pkg, idx) => {
           // Format price
           const priceDisplay = pkg.showPricing === false 
@@ -103,7 +99,7 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="flex flex-col bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 h-full"
+              className="flex flex-col bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 h-full w-full"
             >
               {/* Section 1: Hero Thumbnail */}
               <div className="w-full aspect-video relative overflow-hidden bg-gray-100 shrink-0">
@@ -138,7 +134,7 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
               </div>
 
               {/* Section 3: Actions */}
-              <div className="p-6 pt-0 mt-auto flex items-center gap-3">
+              <div className="p-6 pt-0 mt-auto flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full">
                 <button
                   onClick={() => handleMoreDetails(pkg)}
                   className="flex-1 py-3 px-3 bg-white border border-gray-300 text-gray-800 font-bold text-sm uppercase tracking-wide rounded-sm hover:bg-gray-50 transition-colors text-center shadow-sm"

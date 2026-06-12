@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getPackageById } from '../api/packageService';
 import { getActiveOffers } from '../api/offerService';
-import { Camera, Video, Image as ImageIcon, Film, BookOpen, Navigation, Play, Plus, Check, Tag } from 'lucide-react';
+import { Camera, Video, Image as ImageIcon, Film, BookOpen, Navigation, Play, Plus, Check, Tag, ChevronDown, ChevronUp, Square, CheckSquare } from 'lucide-react';
 import { useIntent } from '../context/IntentContext';
 import EditorialHero from '../components/common/EditorialHero';
 import useSEO from '../hooks/useSEO';
@@ -22,7 +22,24 @@ function PackageDetailPage() {
   const [pkg, setPkg] = useState(null);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFeaturesOpen, setIsFeaturesOpen] = useState(true);
+  const [isAddonsOpen, setIsAddonsOpen] = useState(true);
+  const [selectedAddons, setSelectedAddons] = useState([]);
   const { executeProtectedAction } = useIntent();
+
+  const totalPrice = pkg ? (pkg.price + selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0)) : 0;
+
+  const toggleAddon = (addon) => {
+    setSelectedAddons(prev => {
+      const currentId = addon.id || addon._id;
+      const isSelected = prev.some(a => (a.id || a._id) === currentId);
+      if (isSelected) {
+        return prev.filter(a => (a.id || a._id) !== currentId);
+      } else {
+        return [...prev, addon];
+      }
+    });
+  };
 
   useSEO({ title: pkg ? pkg.name : null, customSeoTitle: pkg?.seoTitle, customSeoDescription: pkg?.seoDescription });
 
@@ -167,30 +184,124 @@ function PackageDetailPage() {
         )}
       </div>
 
-      {/* 2. Included Experiences Section */}
-      <section id="experiences" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif text-gray-900 mb-4">Included Experiences</h2>
-          <div className="w-16 h-0.5 bg-[#ea580c] mx-auto"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {pkg.features.map(feature => {
-            const Icon = ICON_MAP[feature.iconKey] || Check;
-            return (
-              <div key={feature.id} className="premium-card p-8 group">
-                <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                  <Icon className="w-6 h-6 text-[#ea580c]" />
-                </div>
-                <h3 className="text-xl font-serif text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">{feature.description}</p>
+      {/* 2. Included Experiences Section (Dense Layout) */}
+      <section id="experiences" className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mb-8">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <button 
+            onClick={() => setIsFeaturesOpen(!isFeaturesOpen)}
+            className="w-full flex items-center justify-between p-6 bg-gray-50/50 hover:bg-gray-50 transition-colors"
+          >
+            <h2 className="text-xl font-serif text-gray-900 flex items-center gap-3">
+              Included Services
+              <span className="text-xs bg-gray-200 text-gray-700 px-2.5 py-1 rounded-full font-sans font-bold">{pkg.features?.length || 0}</span>
+            </h2>
+            {isFeaturesOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+          </button>
+          
+          {isFeaturesOpen && (
+            <div className="p-6 border-t border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                {pkg.features.map(feature => {
+                  const Icon = ICON_MAP[feature.iconKey] || Check;
+                  return (
+                    <div key={feature.id} className="flex items-start gap-3 group">
+                      <div className="mt-0.5 w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5 text-green-600" />
+                      </div>
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#ea580c] transition-colors" />
+                          <h3 className="text-[15px] font-semibold text-gray-900">{feature.title}</h3>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* 3. Media Showcase (Gallery) */}
+      {/* 3. Add-On Experience (Dense Layout) */}
+      {pkg.allowAddOns && pkg.addOns && pkg.addOns.length > 0 && (
+        <section id="addons" className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mb-8">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <button 
+              onClick={() => setIsAddonsOpen(!isAddonsOpen)}
+              className="w-full flex items-center justify-between p-6 bg-gray-50/50 hover:bg-gray-50 transition-colors"
+            >
+              <h2 className="text-xl font-serif text-gray-900 flex items-center gap-3">
+                Optional Upgrades
+                <span className="text-xs bg-orange-100 text-[#ea580c] px-2.5 py-1 rounded-full font-sans font-bold">{pkg.addOns?.length || 0}</span>
+              </h2>
+              {isAddonsOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+            </button>
+            
+            {isAddonsOpen && (
+              <div className="p-0 border-t border-gray-100">
+                <div className="flex flex-col">
+                  {pkg.addOns.map((addon, index) => {
+                    const currentId = addon.id || addon._id;
+                    const isSelected = selectedAddons.some(a => (a.id || a._id) === currentId);
+                    return (
+                      <div 
+                        key={currentId} 
+                        onClick={() => toggleAddon(addon)}
+                        className={`flex items-center justify-between p-5 cursor-pointer transition-colors ${index !== pkg.addOns.length - 1 ? 'border-b border-gray-50' : ''} ${isSelected ? 'bg-orange-50/30' : 'hover:bg-gray-50'}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <button className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border ${isSelected ? 'bg-[#ea580c] border-[#ea580c]' : 'bg-white border-gray-300'}`}>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                          </button>
+                          <div>
+                            <h3 className="text-[15px] font-semibold text-gray-900">{addon.name}</h3>
+                            {addon.description && <p className="text-xs text-gray-500 hidden sm:block mt-0.5">{addon.description}</p>}
+                          </div>
+                        </div>
+                        {pkg.showPricing !== false && addon.price && (
+                          <span className={`text-sm font-bold ${isSelected ? 'text-[#ea580c]' : 'text-gray-900'}`}>+₹{addon.price}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* 4. Package Summary */}
+      <section className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mb-20">
+        <div className="bg-gray-900 rounded-2xl p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="w-full md:w-auto">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">Package Summary</h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3 text-sm">
+                <Check className="w-4 h-4 text-[#ea580c]" />
+                <span>{pkg.features?.length || 0} Included Services</span>
+              </li>
+              {pkg.allowAddOns && (
+                <li className="flex items-center gap-3 text-sm">
+                  <Check className="w-4 h-4 text-[#ea580c]" />
+                  <span>{selectedAddons.length} Optional Upgrades Selected</span>
+                </li>
+              )}
+            </ul>
+          </div>
+          {pkg.showPricing !== false && (
+            <div className="w-full md:w-auto flex flex-col items-start md:items-end p-6 bg-white/5 rounded-xl border border-white/10">
+              <span className="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Total Estimated Investment</span>
+              <div className="text-3xl font-serif text-white">
+                ₹{totalPrice}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 5. Media Showcase (Gallery) */}
       {pkg.media.gallery && pkg.media.gallery.length > 0 && (
         <section className="py-24 bg-white border-y border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -213,50 +324,29 @@ function PackageDetailPage() {
         </section>
       )}
 
-      {/* 4. Add-On Experience */}
-      {pkg.allowAddOns && pkg.addOns && pkg.addOns.length > 0 && (
-        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-serif text-gray-900 mb-4">Customize Your Package</h2>
-            <div className="w-16 h-0.5 bg-[#ea580c] mx-auto"></div>
-            <p className="mt-6 text-gray-700 max-w-2xl mx-auto">Elevate your experience with these premium optional upgrades.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {pkg.addOns.map(addon => {
-              const Icon = ICON_MAP[addon.iconKey] || Plus;
-              return (
-                <div key={addon.id} className="premium-card p-8 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-gray-700" />
-                    </div>
-                    {pkg.showPricing !== false && addon.price && (
-                      <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-bold rounded-full">+₹{addon.price}</span>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{addon.name}</h3>
-                  <p className="text-sm text-gray-700 flex-grow">{addon.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
       {/* Sticky Bottom Inquiry Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 sm:p-6 z-50 transform translate-y-0 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
             <h4 className="text-xl font-serif text-gray-900">{pkg.name}</h4>
             {pkg.showPricing !== false ? (
-              <p className="text-gray-700 font-medium">Starting at <span className="font-bold text-gray-900">₹{pkg.price}</span></p>
+              <p className="text-gray-700 font-medium">
+                {selectedAddons.length > 0 ? 'Total Estimate' : 'Starting at'} <span className="font-bold text-gray-900">₹{totalPrice}</span>
+              </p>
             ) : (
               <p className="text-gray-700 font-medium">Contact for Custom Quote</p>
             )}
           </div>
           <button
-            onClick={() => executeProtectedAction('OPEN_BOOKING_FLOW', { category: pkg.category, name: pkg.name, features: pkg.features.map(f => f.title) })}
+            onClick={() => executeProtectedAction('OPEN_BOOKING_FLOW', { 
+              packageId: pkg._id,
+              category: pkg.category, 
+              name: pkg.name, 
+              basePrice: pkg.price,
+              features: pkg.features.map(f => f.title),
+              selectedAddons: selectedAddons,
+              totalPrice: totalPrice
+            })}
             className="w-full sm:w-auto px-8 py-4 bg-[#ea580c] text-white font-bold rounded-full hover:bg-[#c2410c] hover:-translate-y-1 transition-all shadow-lg"
           >
             Check Availability

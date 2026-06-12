@@ -12,22 +12,26 @@ import InspirationPage from './pages/InspirationPage';
 
 import StorePage from './pages/StorePage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import StoreCheckoutPage from './pages/StoreCheckoutPage';
 import CartDrawer from './components/Store/CartDrawer';
 import PortfolioPage from './pages/PortfolioPage';
+import CollectionDetailPage from './pages/CollectionDetailPage';
 import PremiumBookingFlow from './components/BookingFlow/PremiumBookingFlow';
 import CustomerDashboard from './pages/CustomerDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import SessionTimeoutManager from './components/auth/SessionTimeoutManager';
-import ResumeBookingFAB from './components/BookingFlow/ResumeBookingFAB';
+import ScrollToTop from './components/common/ScrollToTop';
+import { CartProvider } from './context/CartContext';
 
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans overflow-x-hidden">
+    <CartProvider>
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans overflow-x-hidden">
+          <ScrollToTop />
         <Header />
         <CartDrawer />
         <PremiumBookingFlow />
-        <ResumeBookingFAB />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -38,8 +42,14 @@ function App() {
             <Route path="/films/:slug" element={<FilmCategoryPage />} />
             <Route path="/shoot" element={<InspirationPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/portfolio/collection/:slug" element={<CollectionDetailPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/store/product/:slug" element={<ProductDetailPage />} />
+            <Route path="/store/checkout" element={
+              <ProtectedRoute>
+                <StoreCheckoutPage />
+              </ProtectedRoute>
+            } />
             <Route 
               path="/dashboard" 
               element={
@@ -52,7 +62,8 @@ function App() {
           </Routes>
         </main>
         <Footer />
-    </div>
+      </div>
+    </CartProvider>
   );
 }
 

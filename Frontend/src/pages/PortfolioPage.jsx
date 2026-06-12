@@ -4,6 +4,7 @@ import { Play, Camera, Star, Award, ChevronRight, Video, FileImage, ShieldCheck,
 import { Link } from 'react-router-dom';
 import { getPortfolio } from '../api/portfolioService';
 import useSEO from '../hooks/useSEO';
+import InfiniteCarousel from '../components/common/InfiniteCarousel';
 
 // --- COMPONENTS ---
 
@@ -273,22 +274,40 @@ const PremiumGallerySection = ({ collections }) => {
         </button>
       </div>
       
-      {/* Masonry Layout */}
-      <div className="columns-1 sm:columns-2 lg:columns-3 gap-8">
-        {collections.map((item, idx) => (
-          <div key={idx} className="break-inside-avoid mb-8 relative group rounded-2xl overflow-hidden cursor-pointer bg-white/5 border border-white/5">
-            <div className={`w-full relative overflow-hidden aspect-[4/5]`}>
-              <img src={item.coverImage || item.images?.[0]} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 opacity-90 group-hover:opacity-100" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/90 via-[#0a0a0a]/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
-              
-              <div className="absolute inset-0 p-8 flex flex-col justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
-                <span className="text-white font-serif text-3xl font-light tracking-tight">{item.title}</span>
-                <p className="text-zinc-400 text-sm mt-2 line-clamp-2">{item.description}</p>
-                <div className="w-0 h-px bg-[#ea580c] mt-4 group-hover:w-12 transition-all duration-700 ease-out"></div>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Infinite Looping Collections Carousel */}
+      <div className="w-full">
+        <InfiniteCarousel speed={1.5} itemWidth={360} gap={32}>
+          {collections.map((item, idx) => {
+            const slug = item.title.toLowerCase().replace(/\s+/g, '-');
+            return (
+              <Link to={`/portfolio/collection/${slug}`} key={idx} className="block shrink-0">
+                <div className="w-[280px] sm:w-[320px] md:w-[360px] relative group rounded-2xl overflow-hidden cursor-pointer bg-white/5 border border-white/5">
+                  <div className={`w-full relative overflow-hidden aspect-[4/5]`}>
+                    <img src={item.coverImage || item.images?.[0]} alt={item.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 opacity-90 group-hover:opacity-100" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/90 via-[#0a0a0a]/30 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-700"></div>
+                    
+                    <div className="absolute inset-0 p-8 flex flex-col justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+                      <span className="text-white font-serif text-3xl font-light tracking-tight">{item.title}</span>
+                      <p className="text-zinc-400 text-sm mt-2 line-clamp-2">{item.description}</p>
+                      
+                      {/* Hover Info */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-700 mt-4 flex items-center justify-between">
+                        <span className="text-[#ea580c] text-[10px] uppercase tracking-widest font-bold">
+                          {item.images?.length || 0} Photos
+                        </span>
+                        <span className="text-white text-[10px] uppercase tracking-widest font-bold flex items-center">
+                          Explore <ChevronRight className="w-3 h-3 ml-1" />
+                        </span>
+                      </div>
+                      
+                      <div className="w-0 h-px bg-[#ea580c] mt-4 group-hover:w-full transition-all duration-700 ease-out"></div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </InfiniteCarousel>
       </div>
     </div>
   </section>
@@ -299,23 +318,25 @@ const AwardsSection = ({ achievements }) => {
   if (!achievements || achievements.length === 0) return null;
   return (
   <section className="py-40 bg-[#0a0a0a] relative z-20 border-t border-white/5">
-    <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
+    <div className="max-w-[100vw] text-center w-full">
       <SectionHeading title="Awards & Recognition" subtitle="Excellence Proven" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-16 items-center justify-center transition-all duration-1000 mt-20">
-        {achievements.map(ach => (
-          <div key={ach._id} className="flex flex-col items-center group">
-             <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border border-white/10 flex items-center justify-center mb-8 group-hover:border-[#ea580c] group-hover:bg-[#ea580c]/5 transition-colors duration-700 overflow-hidden">
-                {ach.awardImage ? (
-                  <img src={ach.awardImage} alt={ach.awardName} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                ) : (
-                  <ShieldCheck className="w-12 h-12 md:w-16 md:h-16 text-white group-hover:text-[#ea580c] transition-colors duration-700" />
-                )}
-             </div>
-             <p className="text-[#ea580c] text-sm font-bold tracking-widest mb-2">{ach.awardYear}</p>
-             <p className="text-white font-serif text-xl font-light tracking-wide text-center">{ach.awardName}</p>
-             <p className="text-zinc-500 text-sm mt-2">{ach.awardOrganization}</p>
-          </div>
-        ))}
+      <div className="mt-20 w-full">
+        <InfiniteCarousel speed={1} itemWidth={200} gap={64}>
+          {achievements.map(ach => (
+            <div key={ach._id} className="flex flex-col items-center group w-[180px] md:w-[220px] shrink-0">
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border border-white/10 flex items-center justify-center mb-8 group-hover:border-[#ea580c] group-hover:bg-[#ea580c]/5 transition-colors duration-700 overflow-hidden shrink-0">
+                  {ach.awardImage ? (
+                    <img src={ach.awardImage} alt={ach.awardName} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                  ) : (
+                    <ShieldCheck className="w-12 h-12 md:w-16 md:h-16 text-white group-hover:text-[#ea580c] transition-colors duration-700" />
+                  )}
+               </div>
+               <p className="text-[#ea580c] text-sm font-bold tracking-widest mb-2">{ach.awardYear}</p>
+               <p className="text-white font-serif text-lg font-light tracking-wide text-center leading-tight h-14 line-clamp-2">{ach.awardName}</p>
+               <p className="text-zinc-500 text-xs mt-2 line-clamp-1">{ach.awardOrganization}</p>
+            </div>
+          ))}
+        </InfiniteCarousel>
       </div>
     </div>
   </section>

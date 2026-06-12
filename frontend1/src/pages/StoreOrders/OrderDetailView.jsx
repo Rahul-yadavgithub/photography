@@ -1,9 +1,11 @@
+import { useApi } from '../../hooks/useApi';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, User, Phone, Mail, Calendar, MessageSquare, Package, CheckCircle2, XCircle, Clock, Check, MoreHorizontal, PhoneCall, Copy, CreditCard, AlertCircle } from 'lucide-react';
 import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
 
 const OrderDetailView = () => {
+  const { fetchWithAuth } = useApi();
   const { orderId } = useParams();
   const navigate = useNavigate();
   
@@ -23,7 +25,8 @@ const OrderDetailView = () => {
     try {
       setIsLoading(true);
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${orderId}`);
+      const fetchResult = await fetchWithAuth('/api/bookings/${orderId}');
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       if (result.success) {
         const data = result.data;
@@ -41,9 +44,10 @@ const OrderDetailView = () => {
     setIsProcessing(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}/approve`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}/approve', {
         method: 'PUT'
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -69,11 +73,12 @@ const OrderDetailView = () => {
     setIsProcessing(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}/reject`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}/reject', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rejectionReason })
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -95,9 +100,10 @@ const OrderDetailView = () => {
     setIsProcessing(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}', {
         method: 'DELETE'
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -117,11 +123,12 @@ const OrderDetailView = () => {
   const handleLegacyStatusChange = async (newStatus) => {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/${inquiry._id}/status`, {
+      const fetchResult = await fetchWithAuth('/api/bookings/${inquiry._id}/status', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+        const response = { ok: true, json: async () => fetchResult };
       const result = await response.json();
       
       if (result.success) {
@@ -451,34 +458,78 @@ const OrderDetailView = () => {
                 <Package className="w-5 h-5 text-zinc-400" /> Product Order Information
               </h2>
 
-              <div className="bg-zinc-50 rounded-xl border border-zinc-100 p-5">
-                <div className="flex items-center justify-between border-b border-zinc-200 pb-4 mb-4">
-                  <div>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider bg-white border border-zinc-200 px-2 py-0.5 rounded-md mb-2 inline-block">
-                      {inquiry.productData?.productCategory || 'Store'}
-                    </span>
-                    <h3 className="text-xl font-bold text-zinc-900">{inquiry.productData?.productName || 'Product'}</h3>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Quantity</span>
-                    <span className="text-xl font-black text-blue-600">{inquiry.productData?.quantity || 1} units</span>
+              {inquiry.productData?.items && inquiry.productData.items.length > 0 ? (
+                <div className="space-y-4 mb-6">
+                  {inquiry.productData.items.map((item, idx) => (
+                    <div key={idx} className="bg-zinc-50 rounded-xl border border-zinc-100 p-4 flex gap-4 items-start">
+                      {item.image && (
+                        <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg bg-zinc-200" />
+                      )}
+                      <div className="flex-grow">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-lg font-bold text-zinc-900">{item.name || 'Product'}</h3>
+                            {item.options && Object.keys(item.options).length > 0 && (
+                              <div className="mt-1 text-xs text-zinc-500">
+                                {Object.entries(item.options).map(([k, v]) => (
+                                  <span key={k} className="mr-3 inline-block">
+                                    <span className="font-semibold text-zinc-600">{k}:</span> {v}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <span className="text-lg font-black text-blue-600">₹{(item.price || 0).toLocaleString()}</span>
+                            <span className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mt-1">Qty: {item.qty || 1}</span>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs font-semibold text-emerald-600">
+                          Advance Required: {item.advancePercentage || 0}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-zinc-50 rounded-xl border border-zinc-100 p-5 mb-6">
+                   <p className="text-sm text-zinc-500">No items found in this order.</p>
+                </div>
+              )}
+
+              {inquiry.productData?.shipping && (
+                <div className="bg-zinc-50 rounded-xl border border-zinc-100 p-5 mt-4">
+                  <h3 className="text-sm font-bold text-zinc-900 mb-3 border-b border-zinc-200 pb-2">Shipping Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="col-span-full">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Street Address</span>
+                      <span className="text-sm font-medium text-zinc-800">{inquiry.productData.shipping.address}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">City</span>
+                      <span className="text-sm font-medium text-zinc-800">{inquiry.productData.shipping.city}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Postal Code</span>
+                      <span className="text-sm font-medium text-zinc-800">{inquiry.productData.shipping.postalCode}</span>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                {inquiry.specialInstructions && (
-                  <div className="mb-4">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-2">Special Instructions</label>
-                    <p className="text-sm text-zinc-700 bg-white p-3 rounded-lg border border-zinc-200">{inquiry.specialInstructions}</p>
-                  </div>
-                )}
-                
-                {inquiry.notes && (
-                  <div>
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-2">Additional Notes</label>
-                    <p className="text-sm text-zinc-700 bg-white p-3 rounded-lg border border-zinc-200">{inquiry.notes}</p>
-                  </div>
-                )}
-              </div>
+              {inquiry.specialInstructions && (
+                <div className="mt-4 bg-zinc-50 rounded-xl border border-zinc-100 p-5">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-2">Special Instructions</label>
+                  <p className="text-sm text-zinc-700 bg-white p-3 rounded-lg border border-zinc-200">{inquiry.specialInstructions}</p>
+                </div>
+              )}
+              
+              {inquiry.notes && (
+                <div className="mt-4 bg-zinc-50 rounded-xl border border-zinc-100 p-5">
+                  <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-2">Additional Notes</label>
+                  <p className="text-sm text-zinc-700 bg-white p-3 rounded-lg border border-zinc-200">{inquiry.notes}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">

@@ -39,7 +39,7 @@ const CounterCard = ({ label, value, startCounting, duration = 2500, suffix = ""
   
   return (
     <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center transform transition-all duration-500 hover:-translate-y-2 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.3)] group">
-      <div className="text-5xl md:text-6xl font-serif text-white font-light mb-4 tracking-tight group-hover:scale-105 transition-transform duration-500">
+      <div className="text-4xl md:text-5xl font-serif text-white font-light mb-4 tracking-tight group-hover:scale-105 transition-transform duration-500">
         {count}{suffix}
       </div>
       <div className="text-[11px] uppercase tracking-[0.2em] font-medium text-white/60 text-center leading-relaxed">

@@ -64,15 +64,27 @@ const Step5Review = ({ data, onNext, onEditStep }) => {
             </div>
           ))}
 
-          {renderSection('Selected Package', 2, (
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h4 className="font-bold text-lg text-gray-900">{pkg?.name || data.packageName}</h4>
-                  <p className="text-gray-500 text-sm mt-0.5">
-                    Total: ₹{totalAmount.toLocaleString()}
-                  </p>
+          {renderSection('Selected Package & Add-ons', 2, (
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-gray-900 text-lg">{pkg?.name || data.packageName}</span>
+                <span className="text-gray-900 font-medium">₹{(data.basePrice || pkg?.discountPrice || pkg?.price || 0).toLocaleString()}</span>
+              </div>
+              
+              {data.selectedAddons && data.selectedAddons.length > 0 && (
+                <div className="pl-4 space-y-2 border-l-2 border-gray-100 py-2 my-2">
+                  {data.selectedAddons.map((addon, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">+ {addon.name}</span>
+                      <span className="text-gray-600">₹{(addon.price || 0).toLocaleString()}</span>
+                    </div>
+                  ))}
                 </div>
+              )}
+              
+              <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
+                <span className="font-bold text-gray-900 uppercase tracking-widest text-xs">Total Amount</span>
+                <span className="font-bold text-[#ea580c] text-xl">₹{(data.totalPrice || 0).toLocaleString()}</span>
               </div>
             </div>
           ))}

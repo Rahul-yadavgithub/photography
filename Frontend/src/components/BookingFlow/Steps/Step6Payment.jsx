@@ -33,7 +33,7 @@ const Step6Payment = ({ data, onNext, onEditStep }) => {
   }, [error]);
 
   const pkg = data.selectedPackageSnapshot;
-  const totalAmount = pkg?.discountPrice || pkg?.price || 0;
+  const totalAmount = data.totalPrice || 0;
   const advanceAmount = Math.round((totalAmount * (data.advancePercentage || 0)) / 100);
   const remainingAmount = totalAmount - advanceAmount;
 
@@ -59,6 +59,7 @@ const Step6Payment = ({ data, onNext, onEditStep }) => {
           packageId: data.packageId,
           packageName: data.packageName,
           selectedPackageSnapshot: pkg,
+          selectedAddons: data.selectedAddons || [],
           eventDate: data.eventDate,
           eventLocation: data.eventLocation,
           notes: data.notes,
@@ -68,6 +69,9 @@ const Step6Payment = ({ data, onNext, onEditStep }) => {
           advancePercentage: data.advancePercentage,
           selectedBenefits: data.selectedBenefits,
           isAdvancePayment,
+          basePrice: data.basePrice || 0,
+          subtotal: data.subtotal || 0,
+          tax: data.tax || 0,
           totalAmount,
           advanceAmount
         }),

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import SessionTimeoutManager from './components/auth/SessionTimeoutManager';
 import useSEO from './hooks/useSEO';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Layout
 import Layout from './components/layout/Layout';
@@ -72,6 +73,7 @@ function App() {
     <ProtectedRoute>
       <SessionTimeoutManager />
       <NotificationProvider>
+        <ScrollToTop />
         <Layout>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

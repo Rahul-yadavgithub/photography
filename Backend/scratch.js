@@ -1,27 +1,15 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { User } from './models/user.model.js';
+
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI);
-
-const categorySchema = new mongoose.Schema({
-  categoryName: { type: String, required: true, unique: true },
-  slug: { type: String, required: true, unique: true },
-  heroHeading: { type: String },
-  shortDescription: { type: String },
-  fullDescription: { type: String }
-});
-
-const Cat = mongoose.model('Category', categorySchema, 'categories');
-
-async function test() {
-  try {
-      const c = await Cat.findOne({ categoryName: /Corporate/i });
-      console.log("Hero Heading:", JSON.stringify(c.heroHeading));
-      console.log("Short Desc:", JSON.stringify(c.shortDescription));
-  } catch (err) {
-      console.log(err.message);
-  }
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+  console.log("Connected to MongoDB");
+  const result = await User.updateMany({}, { role: 'admin' });
+  console.log(`Updated ${result.modifiedCount} users to admin role`);
   process.exit(0);
-}
-test();
+}).catch(err => {
+  console.error(err);
+  process.exit(1);
+});

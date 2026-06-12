@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -17,41 +17,7 @@ import {
   CalendarDays,
   LayoutTemplate
 } from 'lucide-react';
-
-// --- MOCK DATA ---
-const KPI_DATA = [
-  { title: 'Total Inquiries', value: '142', trend: '+12 This Week', status: 'up', icon: Users, color: 'blue' },
-  { title: 'Active Packages', value: '18', trend: '2 Drafts', status: 'neutral', icon: Package, color: 'emerald' },
-  { title: 'Wedding Films', value: '34', trend: '+3 This Month', status: 'up', icon: Video, color: 'purple' },
-  { title: 'Shoot Inspirations', value: '256', trend: '+45 This Week', status: 'up', icon: ImageIcon, color: 'amber' },
-  { title: 'Pending Requests', value: '12', trend: 'Requires Action', status: 'warning', icon: Clock, color: 'red' },
-  { title: 'Testimonials', value: '48', trend: '4.9 Avg Rating', status: 'up', icon: Star, color: 'zinc' },
-];
-
-const INQUIRY_CATEGORIES = [
-  { name: 'Wedding Photography', count: 45, pending: 5, urgent: 2 },
-  { name: 'Pre-Wedding Shoot', count: 32, pending: 3, urgent: 1 },
-  { name: 'Wedding Films', count: 28, pending: 4, urgent: 0 },
-  { name: 'Couple Shoot', count: 15, pending: 0, urgent: 0 },
-];
-
-const UPCOMING_EVENTS = [
-  { customer: 'Rahul & Priya', service: 'Wedding Photography', date: '2027-01-15', daysLeft: 5, urgent: true },
-  { customer: 'Aman & Simran', service: 'Pre-Wedding Shoot', date: '2027-01-20', daysLeft: 10, urgent: false },
-  { customer: 'Vikram & Aisha', service: 'Wedding Films', date: '2027-02-05', daysLeft: 26, urgent: false },
-];
-
-const TOP_PACKAGES = [
-  { name: 'Gold Wedding Package', inquiries: 28, trend: 'Best Seller' },
-  { name: 'Platinum Wedding Package', inquiries: 15, trend: 'Trending' },
-  { name: 'Premium Pre-Wedding', inquiries: 12, trend: 'Stable' },
-];
-
-const RECENT_ACTIVITY = [
-  { action: 'New Inquiry Received', details: 'Gold Wedding Package', time: '2 Hours Ago', color: 'bg-blue-500' },
-  { action: 'Wedding Film Published', details: 'Royal Jaipur Wedding', time: 'Yesterday', color: 'bg-emerald-500' },
-  { action: 'Package Updated', details: 'Platinum Wedding Package', time: 'Today', color: 'bg-purple-500' },
-];
+import { useApi } from '../hooks/useApi';
 
 const QUICK_ACTIONS = [
   { name: 'Create Package', icon: Package, path: '/packages' },
@@ -103,10 +69,66 @@ const KPICard = ({ data }) => {
 const Dashboard = () => {
   const { user } = useUser();
   const navigate = useNavigate();
+  const { fetchWithAuth } = useApi();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchWithAuth('/dashboard/stats');
+        if (response?.success) {
+          setData(response);
+        } else {
+          setError('Failed to fetch dashboard data');
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardStats();
+  }, []);
 
   // Calculate profile completion
   const profileComplete = [user?.firstName, user?.lastName, user?.imageUrl].filter(Boolean).length;
   const completionPercent = Math.round((profileComplete / 3) * 100);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin mb-4"></div>
+          <p className="text-sm font-medium text-zinc-500 tracking-widest uppercase">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-zinc-900 mb-2">Error Loading Dashboard</h2>
+        <p className="text-zinc-500">{error}</p>
+      </div>
+    );
+  }
+
+  const { kpis, inquiryCategories, upcomingEvents, topPackages, recentActivity } = data;
+
+  const KPI_DATA = [
+    { title: 'Total Inquiries', value: kpis.totalInquiries, trend: `+${kpis.recentInquiries} This Week`, status: kpis.recentInquiries > 0 ? 'up' : 'neutral', icon: Users, color: 'blue' },
+    { title: 'Active Packages', value: kpis.activePackages, trend: `${kpis.draftPackages} Drafts`, status: 'neutral', icon: Package, color: 'emerald' },
+    { title: 'Wedding Films', value: kpis.weddingFilms, trend: `+${kpis.recentFilms} This Month`, status: kpis.recentFilms > 0 ? 'up' : 'neutral', icon: Video, color: 'purple' },
+    { title: 'Shoot Inspirations', value: kpis.shootInspirations, trend: `+${kpis.recentInspirations} This Week`, status: kpis.recentInspirations > 0 ? 'up' : 'neutral', icon: ImageIcon, color: 'amber' },
+    { title: 'Pending Requests', value: kpis.pendingRequests, trend: kpis.pendingRequests > 0 ? 'Requires Action' : 'All Clear', status: kpis.pendingRequests > 0 ? 'warning' : 'neutral', icon: Clock, color: 'red' },
+    { title: 'Testimonials', value: kpis.testimonials, trend: `${kpis.avgRating} Avg Rating`, status: 'up', icon: Star, color: 'zinc' },
+  ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12 max-w-[1400px] mx-auto">
@@ -149,11 +171,16 @@ const Dashboard = () => {
           </div>
           <div className="relative z-10">
             <h3 className="text-red-800 font-black flex items-center gap-2 mb-2">
-              <AlertCircle className="w-5 h-5" /> Action Required
+              {kpis.pendingRequests > 0 || upcomingEvents.some(e => e.urgent) ? (
+                <><AlertCircle className="w-5 h-5" /> Action Required</>
+              ) : (
+                <><CheckCircle2 className="w-5 h-5 text-emerald-600" /> <span className="text-emerald-800">All Caught Up</span></>
+              )}
             </h3>
-            <ul className="text-sm text-red-700 font-medium space-y-1">
-              <li>• 3 Urgent Inquiries pending</li>
-              <li>• 4 Bookings awaiting approval</li>
+            <ul className="text-sm font-medium space-y-1">
+              {upcomingEvents.some(e => e.urgent) && <li className="text-red-700">• Urgent events approaching within 7 days!</li>}
+              {kpis.pendingRequests > 0 && <li className="text-red-700">• {kpis.pendingRequests} Bookings awaiting approval/pending</li>}
+              {!upcomingEvents.some(e => e.urgent) && kpis.pendingRequests === 0 && <li className="text-emerald-700">• No urgent actions pending.</li>}
             </ul>
           </div>
         </div>
@@ -179,9 +206,9 @@ const Dashboard = () => {
             </Link>
           </div>
           <div className="space-y-6">
-            {INQUIRY_CATEGORIES.map((cat, idx) => {
-              const total = INQUIRY_CATEGORIES.reduce((acc, curr) => acc + curr.count, 0);
-              const percent = Math.round((cat.count / total) * 100);
+            {inquiryCategories.length > 0 ? inquiryCategories.map((cat, idx) => {
+              const total = inquiryCategories.reduce((acc, curr) => acc + curr.count, 0);
+              const percent = total > 0 ? Math.round((cat.count / total) * 100) : 0;
               return (
                 <div key={idx}>
                   <div className="flex items-center justify-between mb-2">
@@ -197,7 +224,9 @@ const Dashboard = () => {
                   </div>
                 </div>
               )
-            })}
+            }) : (
+              <div className="text-center py-8 text-zinc-500 font-medium text-sm">No inquiries yet.</div>
+            )}
           </div>
         </div>
 
@@ -207,7 +236,7 @@ const Dashboard = () => {
             <CalendarDays className="w-5 h-5 text-zinc-400" /> Upcoming Events
           </h3>
           <div className="space-y-4">
-            {UPCOMING_EVENTS.map((event, idx) => (
+            {upcomingEvents.length > 0 ? upcomingEvents.map((event, idx) => (
               <div key={idx} className={`p-4 rounded-xl border ${event.urgent ? 'bg-red-50 border-red-200' : 'bg-zinc-50 border-zinc-100'}`}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -219,7 +248,9 @@ const Dashboard = () => {
                   </span>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-zinc-500 font-medium text-sm border border-dashed border-zinc-200 rounded-xl">No upcoming events.</div>
+            )}
           </div>
         </div>
 
@@ -232,7 +263,7 @@ const Dashboard = () => {
         <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
           <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-6">Top Packages</h3>
           <div className="space-y-4">
-            {TOP_PACKAGES.map((pkg, idx) => (
+            {topPackages.length > 0 ? topPackages.map((pkg, idx) => (
               <div key={idx} className="flex flex-col gap-1 pb-4 border-b border-zinc-100 last:border-0 last:pb-0">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm text-zinc-900">{pkg.name}</span>
@@ -240,7 +271,9 @@ const Dashboard = () => {
                 </div>
                 <span className="text-xs font-medium text-zinc-500">{pkg.inquiries} Inquiries</span>
               </div>
-            ))}
+            )) : (
+              <div className="text-sm font-medium text-zinc-500 text-center py-4">Not enough data to calculate top packages.</div>
+            )}
           </div>
         </div>
 
@@ -274,11 +307,11 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-zinc-50 p-3 rounded-xl border border-zinc-100">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Total Poses</span>
-                <span className="text-xl font-black text-zinc-900">142</span>
+                <span className="text-xl font-black text-zinc-900">{kpis.shootInspirations}</span>
               </div>
               <div className="bg-zinc-50 p-3 rounded-xl border border-zinc-100">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Reels</span>
-                <span className="text-xl font-black text-zinc-900">48</span>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Added This Week</span>
+                <span className="text-xl font-black text-zinc-900">{kpis.recentInspirations}</span>
               </div>
             </div>
           </div>
@@ -298,9 +331,9 @@ const Dashboard = () => {
             <Clock className="w-5 h-5 text-zinc-400" /> Recent Activity
           </h3>
           <div className="space-y-6 pl-2">
-            {RECENT_ACTIVITY.map((activity, idx) => (
+            {recentActivity.length > 0 ? recentActivity.map((activity, idx) => (
               <div key={idx} className="relative pl-6">
-                {idx !== RECENT_ACTIVITY.length - 1 && (
+                {idx !== recentActivity.length - 1 && (
                   <div className="absolute left-[3px] top-4 bottom-[-24px] w-0.5 bg-zinc-100"></div>
                 )}
                 <div className={`absolute left-[-2px] top-1.5 w-3 h-3 rounded-full ${activity.color} ring-4 ring-white`}></div>
@@ -313,7 +346,9 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-sm font-medium text-zinc-500 italic py-2">No recent activity found.</div>
+            )}
           </div>
         </div>
 

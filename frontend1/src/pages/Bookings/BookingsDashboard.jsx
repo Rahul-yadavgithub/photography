@@ -1,19 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Clock, CheckCircle2, AlertCircle, Camera, CheckSquare, CalendarDays } from 'lucide-react';
+import { useApi } from '../../hooks/useApi';
 import { getDaysRemaining } from './utils';
 
 const BookingsDashboard = () => {
   const navigate = useNavigate();
+  const { fetchWithAuth } = useApi();
   const [inquiries, setInquiries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-        const response = await fetch(`${backendUrl}/api/bookings`);
-        const result = await response.json();
+        const result = await fetchWithAuth('/bookings');
         if (result.success) {
           const serviceBookings = result.data.filter(b => b.inquiryType === 'service' || !b.inquiryType);
           setInquiries(serviceBookings);

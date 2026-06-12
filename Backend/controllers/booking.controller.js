@@ -3,12 +3,13 @@ import Payment from '../models/payment.model.js';
 import AuditLog from '../models/auditLog.model.js';
 import razorpay from '../utils/razorpay.js';
 import crypto from 'crypto';
+import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/AppError.js';
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
 // @access  Public
-export const createBooking = async (req, res) => {
-  try {
+export const createBooking = catchAsync(async (req, res, next) => {
     const {
       inquiryType,
       productData,
@@ -34,7 +35,7 @@ export const createBooking = async (req, res) => {
     } = req.body;
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: 'userId is required' });
+      return next(new AppError('userId is required', 400));
     }
 
     // Generate a unique booking reference
@@ -108,20 +109,12 @@ export const createBooking = async (req, res) => {
       data: booking,
       order: order // Send order details to frontend for Razorpay Checkout
     });
-  } catch (error) {
-    console.error('Error creating booking:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server Error in creating booking',
-    });
-  }
-};
+});
 
 // @desc    Verify Razorpay Payment
 // @route   POST /api/bookings/verify-payment
 // @access  Public
-export const verifyPayment = async (req, res) => {
-  try {
+export const verifyPayment = catchAsync(async (req, res, next) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -163,17 +156,12 @@ export const verifyPayment = async (req, res) => {
     });
 
     res.status(200).json({ success: true, message: 'Payment verified successfully', data: booking });
-  } catch (error) {
-    console.error('Error verifying payment:', error);
-    res.status(500).json({ success: false, message: 'Server Error verifying payment' });
-  }
-};
+});
 
 // @desc    Approve a booking
 // @route   PUT /api/bookings/:id/approve
 // @access  Private (Admin)
-export const approveBooking = async (req, res) => {
-  try {
+export const approveBooking = catchAsync(async (req, res, next) => {
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       {
@@ -194,17 +182,12 @@ export const approveBooking = async (req, res) => {
     });
 
     res.status(200).json({ success: true, data: booking });
-  } catch (error) {
-    console.error('Error approving booking:', error);
-    res.status(500).json({ success: false, message: 'Server Error approving booking' });
-  }
-};
+});
 
 // @desc    Reject a booking and trigger refund if paid
 // @route   PUT /api/bookings/:id/reject
 // @access  Private (Admin)
-export const rejectBooking = async (req, res) => {
-  try {
+export const rejectBooking = catchAsync(async (req, res, next) => {
     const { rejectionReason } = req.body;
     let booking = await Booking.findById(req.params.id);
     
@@ -264,17 +247,12 @@ export const rejectBooking = async (req, res) => {
     }
 
     res.status(200).json({ success: true, data: booking });
-  } catch (error) {
-    console.error('Error rejecting booking:', error);
-    res.status(500).json({ success: false, message: 'Server Error rejecting booking' });
-  }
-};
+});
 
 // @desc    Permanently delete a booking (Admin only)
 // @route   DELETE /api/bookings/:id
 // @access  Private (Admin)
-export const deleteBooking = async (req, res) => {
-  try {
+export const deleteBooking = catchAsync(async (req, res, next) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
@@ -293,17 +271,12 @@ export const deleteBooking = async (req, res) => {
     });
 
     res.status(200).json({ success: true, message: 'Booking permanently deleted' });
-  } catch (error) {
-    console.error('Error deleting booking:', error);
-    res.status(500).json({ success: false, message: 'Server Error deleting booking' });
-  }
-};
+});
 
 // @desc    Cancel a booking (Customer)
 // @route   PUT /api/bookings/:id/cancel
 // @access  Public / Private
-export const cancelBooking = async (req, res) => {
-  try {
+export const cancelBooking = catchAsync(async (req, res, next) => {
     let booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
@@ -355,17 +328,12 @@ export const cancelBooking = async (req, res) => {
     );
 
     res.status(200).json({ success: true, data: booking });
-  } catch (error) {
-    console.error('Error cancelling booking:', error);
-    res.status(500).json({ success: false, message: 'Server Error cancelling booking' });
-  }
-};
+});
 
 // @desc    Archive a booking (Customer/Admin)
 // @route   PUT /api/bookings/:id/archive
 // @access  Public / Private
-export const archiveBooking = async (req, res) => {
-  try {
+export const archiveBooking = catchAsync(async (req, res, next) => {
     let booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
@@ -387,37 +355,24 @@ export const archiveBooking = async (req, res) => {
     );
 
     res.status(200).json({ success: true, data: booking });
-  } catch (error) {
-    console.error('Error archiving booking:', error);
-    res.status(500).json({ success: false, message: 'Server Error archiving booking' });
-  }
-};
+});
 
 // @desc    Get all bookings
 // @route   GET /api/bookings
 // @access  Private (Admin)
-export const getAllBookings = async (req, res) => {
-  try {
-    const bookings = await Booking.find({}).sort({ createdAt: -1 });
+export const getAllBookings = catchAsync(async (req, res, next) => {
+    const bookings = await Booking.find({}).sort({ createdAt: -1 }).lean();
     res.status(200).json({
       success: true,
       data: bookings,
     });
-  } catch (error) {
-    console.error('Error fetching bookings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server Error in fetching bookings',
-    });
-  }
-};
+});
 
 // @desc    Get booking by ID
 // @route   GET /api/bookings/:id
 // @access  Private (Admin)
-export const getBookingById = async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
+export const getBookingById = catchAsync(async (req, res, next) => {
+    const booking = await Booking.findById(req.params.id).lean();
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
@@ -425,20 +380,12 @@ export const getBookingById = async (req, res) => {
       success: true,
       data: booking,
     });
-  } catch (error) {
-    console.error('Error fetching booking:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server Error in fetching booking',
-    });
-  }
-};
+});
 
 // @desc    Update booking status
 // @route   PATCH /api/bookings/:id/status
 // @access  Private (Admin)
-export const updateBookingStatus = async (req, res) => {
-  try {
+export const updateBookingStatus = catchAsync(async (req, res, next) => {
     const { status } = req.body;
     
     // Validate status
@@ -461,31 +408,16 @@ export const updateBookingStatus = async (req, res) => {
       success: true,
       data: booking,
     });
-  } catch (error) {
-    console.error('Error updating booking status:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server Error in updating booking status',
-    });
-  }
-};
+});
 
 // @desc    Get bookings by user ID
 // @route   GET /api/bookings/user/:userId
 // @access  Public / Private
-export const getBookingsByUser = async (req, res) => {
-  try {
+export const getBookingsByUser = catchAsync(async (req, res, next) => {
     const { userId } = req.params;
-    const bookings = await Booking.find({ userId, isArchived: { $ne: true } }).sort({ createdAt: -1 });
+    const bookings = await Booking.find({ userId, isArchived: { $ne: true } }).sort({ createdAt: -1 }).lean();
     res.status(200).json({
       success: true,
       data: bookings,
     });
-  } catch (error) {
-    console.error('Error fetching user bookings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server Error in fetching user bookings',
-    });
-  }
-};
+});

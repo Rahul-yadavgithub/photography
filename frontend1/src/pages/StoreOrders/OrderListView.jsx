@@ -1,9 +1,11 @@
+import { useApi } from '../../hooks/useApi';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, Phone, Mail, Calendar, Clock, Check, X, PhoneCall, MoreVertical, CreditCard, Package } from 'lucide-react';
 import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
 
 const OrderListView = () => {
+  const { fetchWithAuth } = useApi();
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +18,8 @@ const OrderListView = () => {
     const fetchBookings = async () => {
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-        const response = await fetch(`${backendUrl}/api/bookings`);
+        const fetchResult = await fetchWithAuth('/api/bookings');
+        const response = { ok: true, json: async () => fetchResult };
         const result = await response.json();
         if (result.success) {
           const products = result.data.filter(b => b.inquiryType === 'product');
