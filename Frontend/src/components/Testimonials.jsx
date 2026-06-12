@@ -3,6 +3,8 @@ import { FaStar, FaTimes } from 'react-icons/fa';
 
 // Removed static REVIEWS array
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 function Testimonials() {
   const reviewsRef = useRef(null);
   const [isReviewsPaused, setIsReviewsPaused] = useState(false);
@@ -17,7 +19,7 @@ function Testimonials() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/reviews');
+        const response = await fetch(`${API_URL}/api/reviews`);
         const data = await response.json();
         if (data.success) {
           setReviews(data.data);
@@ -54,7 +56,7 @@ function Testimonials() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/reviews', {
+      const response = await fetch(`${API_URL}/api/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
