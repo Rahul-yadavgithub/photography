@@ -64,7 +64,8 @@ const JourneyInNumbers = () => {
     // Frontend-only API fetch implementation as requested
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/stats/journey');
+        const API_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${API_URL}/api/stats/journey`);
         if (response.ok) {
           const data = await response.json();
           setStats({
