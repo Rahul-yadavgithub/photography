@@ -136,7 +136,7 @@ const FeaturedProducts = ({ products }) => (
       </div>
 
       {products.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
+        <div className="text-center py-20 text-gray-600">
           No products available in this category yet.
         </div>
       ) : (
@@ -194,7 +194,7 @@ const FeaturedProducts = ({ products }) => (
                           ₹{product.salePrice || product.basePrice}
                         </span>
                         {product.salePrice && product.basePrice > product.salePrice && (
-                          <span className="text-sm font-bold text-gray-500 line-through">₹{product.basePrice}</span>
+                          <span className="text-sm font-bold text-gray-600 line-through">₹{product.basePrice}</span>
                         )}
                       </div>
                     </div>

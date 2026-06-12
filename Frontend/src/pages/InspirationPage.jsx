@@ -121,7 +121,7 @@ const FeaturedCollectionsSection = () => (
             <div className="p-8 flex-grow flex flex-col justify-between">
               <div>
                 <h3 className="text-2xl font-serif text-gray-900 mb-3">{col.title}</h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 uppercase tracking-widest font-semibold mb-6">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 uppercase tracking-widest font-semibold mb-6">
                   <span className="bg-gray-100 px-3 py-1 rounded-full">{col.poses} Poses</span>
                   <span className="bg-gray-100 px-3 py-1 rounded-full">{col.duration}</span>
                 </div>
@@ -174,7 +174,7 @@ const PoseGallerySection = ({ poses, savedItems, toggleSave, openModal, loading 
               <div className="p-6 flex-grow flex flex-col justify-between border-x border-b border-gray-100 rounded-b-xl bg-white shadow-sm group-hover:shadow-md transition-shadow">
                 <h3 className="text-lg font-serif text-gray-900 mb-3 line-clamp-1">{pose.poseName}</h3>
                 <div className="flex items-center justify-between mt-auto">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold bg-gray-50 px-2 py-1 rounded line-clamp-1 max-w-[50%]">{pose.categoryId?.categoryName || 'Inspiration'}</span>
+                  <span className="text-[10px] text-gray-600 uppercase tracking-widest font-semibold bg-gray-50 px-2 py-1 rounded line-clamp-1 max-w-[50%]">{pose.categoryId?.categoryName || 'Inspiration'}</span>
                   <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-1 rounded ${pose.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : pose.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
                     {pose.difficulty}
                   </span>
@@ -192,7 +192,7 @@ const PoseGallerySection = ({ poses, savedItems, toggleSave, openModal, loading 
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="text-center mb-16">
           <h2 className="text-fluid-h2 font-serif text-gray-900 tracking-tight mb-4">Pose Inspiration Gallery</h2>
-          <p className="text-gray-600 text-lg">Save your favorites to your Inspiration Board.</p>
+          <p className="text-gray-700 text-lg">Save your favorites to your Inspiration Board.</p>
         </div>
       </div>
 
@@ -201,7 +201,7 @@ const PoseGallerySection = ({ poses, savedItems, toggleSave, openModal, loading 
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea580c]"></div>
         </div>
       ) : poses.length === 0 ? (
-        <div className="text-center text-gray-500 py-20">No poses found in this category.</div>
+        <div className="text-center text-gray-600 py-20">No poses found in this category.</div>
       ) : (
         <div className="flex flex-col space-y-4 pb-10">
           {row1.length > 0 && renderRow(row1, false)}
@@ -321,25 +321,25 @@ export default function InspirationPage() {
                   <h2 className="text-3xl font-serif text-gray-900">{modalPose.poseName || modalPose.title}</h2>
                 </div>
                 <button onClick={() => toggleSave(modalPose._id || modalPose.id)} className="p-3 rounded-full bg-[#f8fafc] hover:bg-gray-100 transition-colors border border-gray-100 shadow-sm">
-                  <Heart className={`w-6 h-6 transition-colors ${savedItems.includes(modalPose._id || modalPose.id) ? 'fill-[#ea580c] text-[#ea580c]' : 'text-gray-400'}`} />
+                  <Heart className={`w-6 h-6 transition-colors ${savedItems.includes(modalPose._id || modalPose.id) ? 'fill-[#ea580c] text-[#ea580c]' : 'text-gray-500'}`} />
                 </button>
               </div>
 
-              <p className="text-gray-600 text-base leading-relaxed mb-10 font-light">
+              <p className="text-gray-700 text-base leading-relaxed mb-10 font-light">
                 {modalPose.shortDescription || modalPose.description || 'A beautiful photography inspiration moment.'}
               </p>
 
               <div className="grid grid-cols-2 gap-6 mb-10">
                 <div className="bg-[#f8fafc] border border-gray-100 p-4 rounded-xl">
-                  <div className="flex items-center text-gray-500 mb-2 space-x-2"><Clock className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest font-bold">Best Time</span></div>
+                  <div className="flex items-center text-gray-600 mb-2 space-x-2"><Clock className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest font-bold">Best Time</span></div>
                   <p className="text-gray-900 font-medium">{modalPose.bestTime || 'Anytime'}</p>
                 </div>
                 <div className="bg-[#f8fafc] border border-gray-100 p-4 rounded-xl">
-                  <div className="flex items-center text-gray-500 mb-2 space-x-2"><Camera className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest font-bold">Best Lens</span></div>
+                  <div className="flex items-center text-gray-600 mb-2 space-x-2"><Camera className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest font-bold">Best Lens</span></div>
                   <p className="text-gray-900 font-medium">{modalPose.bestLens || 'Standard'}</p>
                 </div>
                 <div className="bg-[#f8fafc] border border-gray-100 p-4 rounded-xl col-span-2 flex items-center justify-between">
-                  <div className="flex items-center text-gray-500 space-x-2"><Info className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest font-bold">Difficulty Level</span></div>
+                  <div className="flex items-center text-gray-600 space-x-2"><Info className="w-4 h-4" /> <span className="text-[10px] uppercase tracking-widest font-bold">Difficulty Level</span></div>
                   <span className={`text-xs uppercase font-bold tracking-widest px-3 py-1 rounded ${modalPose.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : modalPose.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
                     {modalPose.difficulty || 'All Levels'}
                   </span>

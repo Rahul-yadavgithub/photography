@@ -71,18 +71,13 @@ function Hero() {
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-5 w-full md:w-auto shrink-0 justify-center">
+            <div className="flex w-full md:w-auto shrink-0 justify-center">
               <Link
-                to="/portfolio"
+                to="/films"
                 className="flex items-center justify-center bg-[#ea580c] text-white px-10 py-4 font-medium tracking-[0.2em] text-[11px] uppercase hover:bg-white hover:text-gray-900 transition-colors duration-500 rounded-sm"
               >
                 View Our Masterpieces
               </Link>
-
-              <button className="flex items-center justify-center gap-3 px-10 py-4 text-white font-medium tracking-[0.2em] text-[11px] uppercase border border-white/20 hover:bg-white/10 transition-colors duration-500 rounded-sm group">
-                <Play className="w-3.5 h-3.5 fill-current opacity-70 group-hover:opacity-100 transition-opacity" />
-                Watch Showreel
-              </button>
             </div>
           </div>
         </div>

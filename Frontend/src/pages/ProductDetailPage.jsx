@@ -141,11 +141,11 @@ function ProductDetailPage() {
 
               <div className="flex items-end gap-4 mb-8 pb-8 border-b border-gray-100">
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Price</span>
+                  <span className="text-xs text-gray-600 font-bold uppercase tracking-wider mb-1">Price</span>
                   <div className="flex items-center gap-3">
                     <span className="text-4xl font-bold text-gray-900">₹{product.salePrice || product.basePrice}</span>
                     {product.salePrice && product.basePrice > product.salePrice && (
-                      <span className="text-xl text-gray-400 line-through">₹{product.basePrice}</span>
+                      <span className="text-xl text-gray-600 line-through">₹{product.basePrice}</span>
                     )}
                   </div>
                 </div>
@@ -156,7 +156,7 @@ function ProductDetailPage() {
                 )}
               </div>
 
-              <div className="prose prose-sm text-gray-600 mb-8 max-w-none">
+              <div className="prose prose-sm text-gray-700 mb-8 max-w-none">
                 <p className="text-lg leading-relaxed font-medium text-gray-900 mb-4">{product.shortDescription}</p>
                 {product.description && <p className="leading-relaxed">{product.description}</p>}
               </div>
@@ -176,7 +176,7 @@ function ProductDetailPage() {
                       
                       return (
                         <div key={key} className={['coverMaterial', 'minimumOrderQuantity', 'customPhotoSupport', 'customDesignSupport', 'customLogoSupport'].includes(key) ? 'col-span-2 flex flex-col' : 'flex flex-col'}>
-                          <span className="text-gray-400 text-xs uppercase mb-1">{formattedKey}</span>
+                          <span className="text-gray-600 text-xs uppercase mb-1">{formattedKey}</span>
                           <span className="font-medium text-gray-900">{value}</span>
                         </div>
                       );
@@ -192,7 +192,7 @@ function ProductDetailPage() {
                 >
                   Order Inquiry
                 </button>
-                <p className="text-center text-xs text-gray-400 mt-4">
+                <p className="text-center text-xs text-gray-600 mt-4">
                   For customization requests, please contact us directly.
                 </p>
               </div>

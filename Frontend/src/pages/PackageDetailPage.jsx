@@ -80,14 +80,6 @@ function PackageDetailPage() {
         label={pkg.category}
         title={pkg.name}
         description={pkg.shortDesc || pkg.description}
-        action={
-          <button
-            onClick={() => executeProtectedAction('OPEN_BOOKING_FLOW', { category: pkg.category, name: pkg.name, features: pkg.features.map(f => f.title) })}
-            className="px-6 py-3 bg-white text-gray-900 font-bold tracking-widest uppercase text-xs rounded-full hover:bg-gray-100 hover:scale-105 transition-all shadow-lg flex items-center gap-2"
-          >
-            Book Consultation <Plus className="w-4 h-4" />
-          </button>
-        }
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
@@ -97,7 +89,7 @@ function PackageDetailPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="px-3 py-1 bg-red-100 text-red-600 font-bold text-xs uppercase tracking-wider rounded-full">Limited Offer</span>
-                <span className="text-gray-400 font-bold line-through text-lg">₹{pkg.price}</span>
+                <span className="text-gray-600 font-bold line-through text-lg">₹{pkg.price}</span>
               </div>
               <div className="flex items-end gap-2">
                 <span className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
@@ -115,7 +107,7 @@ function PackageDetailPage() {
                     }, pkg.price)
                   }
                 </span>
-                <span className="text-gray-500 font-medium mb-1">/ package</span>
+                <span className="text-gray-600 font-medium mb-1">/ package</span>
               </div>
             </div>
             
@@ -166,7 +158,7 @@ function PackageDetailPage() {
                       )}
                     </div>
                     <h4 className="text-lg font-bold text-gray-900 mb-1">{offer.title}</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">{offer.description}</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{offer.description}</p>
                   </div>
                 </div>
               ))}
@@ -191,7 +183,7 @@ function PackageDetailPage() {
                   <Icon className="w-6 h-6 text-[#ea580c]" />
                 </div>
                 <h3 className="text-xl font-serif text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-gray-700 text-sm leading-relaxed">{feature.description}</p>
               </div>
             );
           })}
@@ -205,7 +197,7 @@ function PackageDetailPage() {
             <div className="text-center mb-16">
               <h2 className="text-4xl font-serif text-gray-900 mb-4">The Portfolio</h2>
               <div className="w-16 h-0.5 bg-[#ea580c] mx-auto"></div>
-              <p className="mt-6 text-gray-500 max-w-2xl mx-auto">A glimpse into the cinematic quality and timeless memories you can expect from this collection.</p>
+              <p className="mt-6 text-gray-700 max-w-2xl mx-auto">A glimpse into the cinematic quality and timeless memories you can expect from this collection.</p>
             </div>
 
             {/* Masonry Layout via CSS Columns */}
@@ -227,7 +219,7 @@ function PackageDetailPage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-serif text-gray-900 mb-4">Customize Your Package</h2>
             <div className="w-16 h-0.5 bg-[#ea580c] mx-auto"></div>
-            <p className="mt-6 text-gray-500 max-w-2xl mx-auto">Elevate your experience with these premium optional upgrades.</p>
+            <p className="mt-6 text-gray-700 max-w-2xl mx-auto">Elevate your experience with these premium optional upgrades.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -244,7 +236,7 @@ function PackageDetailPage() {
                     )}
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{addon.name}</h3>
-                  <p className="text-sm text-gray-500 flex-grow">{addon.description}</p>
+                  <p className="text-sm text-gray-700 flex-grow">{addon.description}</p>
                 </div>
               );
             })}
@@ -258,9 +250,9 @@ function PackageDetailPage() {
           <div className="text-center sm:text-left">
             <h4 className="text-xl font-serif text-gray-900">{pkg.name}</h4>
             {pkg.showPricing !== false ? (
-              <p className="text-gray-500 font-medium">Starting at <span className="font-bold text-gray-900">₹{pkg.price}</span></p>
+              <p className="text-gray-700 font-medium">Starting at <span className="font-bold text-gray-900">₹{pkg.price}</span></p>
             ) : (
-              <p className="text-gray-500 font-medium">Contact for Custom Quote</p>
+              <p className="text-gray-700 font-medium">Contact for Custom Quote</p>
             )}
           </div>
           <button

@@ -78,7 +78,7 @@ const FeaturedFilmsSection = ({ films, onVideoClick }) => {
       <div className="max-w-[100vw] mx-auto px-6 md:px-12">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-serif text-gray-900 mb-4 tracking-tight">Our Signature Wedding Films</h2>
-          <p className="text-gray-600 text-lg">A collection of unforgettable love stories captured through our lens.</p>
+          <p className="text-gray-700 text-lg">A collection of unforgettable love stories captured through our lens.</p>
         </div>
 
         {/* Horizontal Marquee */}
@@ -127,7 +127,7 @@ const ReelsSection = ({ reels, onReelClick }) => {
     <section className="py-20 bg-white overflow-hidden border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-6 md:px-12 mb-10 text-center">
         <h2 className="text-3xl md:text-5xl font-serif text-gray-900 tracking-tight">Social Highlights</h2>
-        <p className="text-gray-600 text-lg mt-4">Trending reels and short cinematic moments.</p>
+        <p className="text-gray-700 text-lg mt-4">Trending reels and short cinematic moments.</p>
       </div>
 
       <div className="flex overflow-x-auto gap-6 px-6 md:px-12 pb-8 hide-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
@@ -194,7 +194,7 @@ const DeliverablesSection = () => (
           <div key={idx} className="bg-white border border-gray-100 shadow-sm p-8 rounded-xl hover:shadow-lg hover:border-gray-200 transition-all duration-300">
             <item.icon className="w-10 h-10 text-[#ea580c] mb-6" />
             <h3 className="text-xl font-serif text-gray-900 mb-3">{item.title}</h3>
-            <p className="text-gray-600 text-sm leading-relaxed">{item.desc}</p>
+            <p className="text-gray-700 text-sm leading-relaxed">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -231,9 +231,9 @@ const ComparisonSection = () => (
           ].map((row, idx) => (
             <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
               <td className="py-5 px-6 text-gray-700 font-medium">{row.feature}</td>
-              <td className="py-5 px-6 text-gray-600 text-center">{row.s}</td>
+              <td className="py-5 px-6 text-gray-700 text-center">{row.s}</td>
               <td className="py-5 px-6 text-gray-900 text-center font-semibold bg-orange-50/20">{row.g}</td>
-              <td className="py-5 px-6 text-gray-600 text-center">{row.p}</td>
+              <td className="py-5 px-6 text-gray-700 text-center">{row.p}</td>
             </tr>
           ))}
         </tbody>

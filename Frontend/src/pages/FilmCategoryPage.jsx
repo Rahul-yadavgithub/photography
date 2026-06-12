@@ -88,7 +88,7 @@ export default function FilmCategoryPage() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center font-sans">
         <div className="w-12 h-12 border-2 border-gray-200 border-t-[#ea580c] rounded-full animate-spin mb-4"></div>
-        <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400">Loading Portfolio...</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500">Loading Portfolio...</p>
       </div>
     );
   }
@@ -154,7 +154,7 @@ export default function FilmCategoryPage() {
                 <Film className="w-8 h-8 text-gray-300" />
               </div>
               <h3 className="text-xl font-serif text-gray-900 mb-2">Collection in Progress</h3>
-              <p className="text-gray-500 text-sm">We're currently preparing this exclusive cinematic collection. Please check back soon.</p>
+              <p className="text-gray-700 text-sm">We're currently preparing this exclusive cinematic collection. Please check back soon.</p>
             </div>
           ) : (
             <PremiumVideoGallery films={films} onCardClick={setActiveVideo} />
@@ -166,7 +166,7 @@ export default function FilmCategoryPage() {
           <section className="max-w-7xl mx-auto mt-32">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-serif text-gray-900">Social Highlights</h2>
-              <p className="text-sm text-gray-500 mt-2">Bite-sized moments captured perfectly.</p>
+              <p className="text-sm text-gray-700 mt-2">Bite-sized moments captured perfectly.</p>
             </div>
 
             {/* Intelligent Reels Layout Engine */}
@@ -213,7 +213,7 @@ export default function FilmCategoryPage() {
         {category.btsGallery && category.btsGallery.length > 0 && (
           <section className="max-w-7xl mx-auto mt-32">
             <div className="text-center mb-16">
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 mb-2 block flex items-center justify-center gap-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-600 mb-2 block flex items-center justify-center gap-2">
                 <Camera className="w-3 h-3" /> Behind The Lens
               </span>
               <h2 className="text-3xl font-serif text-gray-900">Production Moments</h2>
