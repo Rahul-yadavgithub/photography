@@ -74,8 +74,15 @@ export const BookingProvider = ({ children }) => {
           totalPrice,
         };
       });
-      // If we pass in package details, skip the first steps and go to Step 3 (Event Details)
-      setStep(3);
+      // Only skip to Step 3 if we already have the basic contact details.
+      setBookingData(currentData => {
+        if (currentData.name && currentData.mobile) {
+          setStep(3);
+        } else {
+          setStep(0);
+        }
+        return currentData;
+      });
     }
     setIsBookingOpen(true);
     setIsBookingPaused(false);

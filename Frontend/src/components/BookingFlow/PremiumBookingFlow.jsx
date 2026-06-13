@@ -102,7 +102,13 @@ const PremiumBookingFlow = () => {
     if (extraData && typeof extraData === 'string') {
       updateBookingData({ bookingReference: extraData });
     }
-    setStep((prev) => prev + 1);
+    setStep((prev) => {
+      // If we're on Step 0 and a package is already pre-selected, jump to Step 3.
+      if (prev === 0 && bookingData.packageId) {
+        return 3;
+      }
+      return prev + 1;
+    });
   };
 
   const handleBack = () => {
