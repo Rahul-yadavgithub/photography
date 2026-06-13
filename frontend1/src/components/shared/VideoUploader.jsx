@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, X, Video as VideoIcon, Loader2 } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '@clerk/clerk-react';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL ? `${import.meta.env.VITE_BACKEND_URL}/api` : 'http://localhost:8000/api';
 
@@ -10,6 +11,7 @@ const VideoUploader = ({ onUploadSuccess, currentVideoUrl = null, folder = 'vide
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const { showSuccess, showError } = useNotification();
+  const { getToken } = useAuth();
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -25,8 +27,12 @@ const VideoUploader = ({ onUploadSuccess, currentVideoUrl = null, folder = 'vide
     formData.append('folder', folder);
 
     try {
+      const token = await getToken();
       const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 

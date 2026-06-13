@@ -6,6 +6,7 @@ import { Camera, Video, Image as ImageIcon, Film, BookOpen, Navigation, Play, Pl
 import { useIntent } from '../context/IntentContext';
 import EditorialHero from '../components/common/EditorialHero';
 import useSEO from '../hooks/useSEO';
+import PremiumLoader from '../components/shared/PremiumLoader';
 
 const ICON_MAP = {
   camera: Camera,
@@ -68,8 +69,8 @@ function PackageDetailPage() {
 
   if (loading) {
     return (
-      <div className="w-full min-h-screen pt-32 pb-24 flex items-center justify-center bg-[#f8fafc]">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+      <div className="w-full min-h-screen pt-20 flex items-center justify-center bg-[#f8fafc]">
+        <PremiumLoader text="CURATING PACKAGE..." />
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { getCategories, getAllPublishedPoses, getPublishedPosesByCategory } from '../api/inspirationService';
 import useSEO from '../hooks/useSEO';
 import InfiniteCarousel from '../components/common/InfiniteCarousel';
+import SkeletonCard from '../components/shared/SkeletonCard';
 
 // --- DATA ---
 // Static Data removed. Using dynamic data from API.
@@ -198,8 +199,19 @@ const PoseGallerySection = ({ poses, savedItems, toggleSave, openModal, loading 
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ea580c]"></div>
+        <div className="flex flex-col space-y-4 pb-10">
+          <div className="flex gap-6 justify-center w-full overflow-hidden px-4 opacity-50">
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px]" />
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px]" />
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px]" />
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px] hidden md:block" />
+          </div>
+          <div className="flex gap-6 justify-center w-full overflow-hidden px-4 opacity-50 -ml-20">
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px]" />
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px]" />
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px]" />
+            <SkeletonCard height="h-[380px]" className="min-w-[280px] max-w-[280px] md:min-w-[320px] md:max-w-[320px] hidden md:block" />
+          </div>
         </div>
       ) : poses.length === 0 ? (
         <div className="text-center text-gray-600 py-20">No poses found in this category.</div>

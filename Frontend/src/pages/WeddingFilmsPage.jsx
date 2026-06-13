@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useIntent } from '../context/IntentContext';
 import { getFilmCategories, getAllFilms, getReels } from '../api/filmService';
 import PremiumVideoModal from '../components/shared/PremiumVideoModal';
+import PremiumLoader from '../components/shared/PremiumLoader';
 import useSEO from '../hooks/useSEO';
 
 // --- COMPONENTS ---
@@ -386,9 +387,8 @@ export default function WeddingFilmsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center font-sans text-gray-900">
-        <div className="w-16 h-16 border-4 border-[#ea580c]/20 border-t-[#ea580c] rounded-full animate-spin mb-4"></div>
-        <p className="text-sm uppercase tracking-widest font-bold text-gray-500">Loading Cinema...</p>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center font-sans">
+        <PremiumLoader text="CURATING CINEMA..." />
       </div>
     );
   }

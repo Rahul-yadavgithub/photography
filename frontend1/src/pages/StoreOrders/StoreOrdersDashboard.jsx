@@ -3,6 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Clock, CheckCircle2, AlertCircle, Camera, CheckSquare, CalendarDays } from 'lucide-react';
 import { getDaysRemaining } from './utils';
+import Loader from '../../components/shared/Loader';
 
 const StoreOrdersDashboard = () => {
   const { fetchWithAuth } = useApi();
@@ -82,6 +83,10 @@ const StoreOrdersDashboard = () => {
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
   };
+
+  if (isLoading) {
+    return <Loader fullScreen={true} text="Loading store orders..." />;
+  }
 
   return (
     <div>

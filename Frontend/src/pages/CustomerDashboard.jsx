@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, User, Phone, Mail, Clock, CheckCircle, XCircle, CreditCard, AlertCircle, Package, Archive, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import PremiumLoader from '../components/shared/PremiumLoader';
 import useSEO from '../hooks/useSEO';
 
 const CustomerDashboard = () => {
@@ -171,7 +172,9 @@ const CustomerDashboard = () => {
           return (
           <div>
             {loading ? (
-              <div className="py-20 text-center text-gray-400"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mx-auto mb-4"></div>Loading {isPurchases ? 'purchases' : 'bookings'}...</div>
+              <div className="py-20 flex justify-center items-center">
+                <PremiumLoader text={`LOADING ${isPurchases ? 'PURCHASES' : 'BOOKINGS'}...`} />
+              </div>
             ) : displayedItems.length === 0 ? (
               <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">

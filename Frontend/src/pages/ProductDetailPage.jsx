@@ -7,6 +7,7 @@ import Breadcrumbs from '../components/common/Breadcrumbs';
 import { useUser } from '@clerk/clerk-react';
 import useSEO from '../hooks/useSEO';
 import { useCart } from '../context/CartContext';
+import PremiumLoader from '../components/shared/PremiumLoader';
 
 function ProductDetailPage() {
   const { slug } = useParams();
@@ -43,8 +44,8 @@ function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#f8fafc] w-full min-h-screen pt-32 pb-24 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-[#ea580c] rounded-full animate-spin"></div>
+      <div className="bg-[#f8fafc] w-full min-h-screen pt-20 flex items-center justify-center">
+        <PremiumLoader text="PREPARING PRODUCT..." />
       </div>
     );
   }

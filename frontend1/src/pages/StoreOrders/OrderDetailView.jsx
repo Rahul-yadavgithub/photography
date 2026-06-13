@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, User, Phone, Mail, Calendar, MessageSquare, Package, CheckCircle2, XCircle, Clock, Check, MoreHorizontal, PhoneCall, Copy, CreditCard, AlertCircle } from 'lucide-react';
 import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
+import Loader from '../../components/shared/Loader';
 
 const OrderDetailView = () => {
   const { fetchWithAuth } = useApi();
@@ -141,11 +142,7 @@ const OrderDetailView = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32">
-        <h2 className="text-xl font-bold text-zinc-500 animate-pulse">Loading Details...</h2>
-      </div>
-    );
+    return <Loader fullScreen={true} text="Loading order details..." />;
   }
 
   if (!inquiry) {

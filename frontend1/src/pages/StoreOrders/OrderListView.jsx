@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, Phone, Mail, Calendar, Clock, Check, X, PhoneCall, MoreVertical, CreditCard, Package } from 'lucide-react';
 import { getUrgency, getStatusColor, getDaysRemaining } from './utils';
+import Loader from '../../components/shared/Loader';
 
 const OrderListView = () => {
   const { fetchWithAuth } = useApi();
@@ -11,6 +12,7 @@ const OrderListView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [allInquiries, setAllInquiries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const categoryName = decodeURIComponent(categoryId);
 
@@ -27,6 +29,8 @@ const OrderListView = () => {
         }
       } catch (error) {
         console.error("Failed to fetch bookings:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchBookings();
@@ -70,6 +74,10 @@ const OrderListView = () => {
   const formatDate = (dateString) => {
     return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(dateString));
   };
+
+  if (isLoading) {
+    return <Loader fullScreen={true} text="Loading orders..." />;
+  }
 
   return (
     <div className="animate-in slide-in-from-right-4 duration-500">

@@ -4,6 +4,7 @@ import { getCategoriesWithPackages } from '../api/packageService';
 import { ChevronRight, LayoutGrid, ArrowRight } from 'lucide-react';
 import Breadcrumbs from '../components/common/Breadcrumbs';
 import { motion } from 'framer-motion';
+import SkeletonCard from '../components/shared/SkeletonCard';
 import useSEO from '../hooks/useSEO';
 
 function PackagesPage() {
@@ -45,8 +46,21 @@ function PackagesPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#f8fafc] w-full min-h-screen pt-32 pb-24 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+      <div className="bg-[#f8fafc] w-full min-h-screen pb-24 overflow-hidden font-sans text-gray-900">
+        <div className="relative w-full min-h-[260px] md:min-h-[320px] bg-[#0a0a0a] flex flex-col justify-center pt-28 pb-14 md:pt-36 md:pb-16 z-10">
+          <div className="relative z-10 max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center opacity-30">
+             <div className="h-4 w-32 bg-zinc-600 rounded mb-4 animate-pulse"></div>
+             <div className="h-12 w-64 bg-zinc-600 rounded mb-5 animate-pulse"></div>
+             <div className="h-4 w-96 bg-zinc-600 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="max-w-[1400px] mx-auto mt-10 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
+            <SkeletonCard height="h-[450px]" />
+            <SkeletonCard height="h-[450px]" />
+            <SkeletonCard height="h-[450px]" />
+          </div>
+        </div>
       </div>
     );
   }

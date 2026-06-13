@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Clock, CheckCircle2, AlertCircle, Camera, CheckSquare, CalendarDays } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getDaysRemaining } from './utils';
+import Loader from '../../components/shared/Loader';
 
 const BookingsDashboard = () => {
   const navigate = useNavigate();
@@ -79,6 +80,10 @@ const BookingsDashboard = () => {
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
   };
+
+  if (isLoading) {
+    return <Loader fullScreen={true} text="Loading bookings..." />;
+  }
 
   return (
     <div>

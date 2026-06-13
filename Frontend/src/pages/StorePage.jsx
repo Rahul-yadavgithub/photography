@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getStoreCategories, getStoreProducts } from '../api/storeService';
+import SkeletonCard from '../components/shared/SkeletonCard';
 import useSEO from '../hooks/useSEO';
 
 const containerVariants = {
@@ -244,8 +245,30 @@ export default function StorePage() {
 
   if (loading && categories.length === 0) {
     return (
-      <div className="bg-[#f8fafc] w-full min-h-screen pt-32 pb-24 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-[#ea580c] rounded-full animate-spin"></div>
+      <div className="bg-[#f8fafc] min-h-screen font-sans w-full text-gray-900 relative">
+        <StoreHero />
+        <section className="py-24 bg-white relative z-20 border-b border-gray-100">
+           <div className="max-w-7xl mx-auto px-6 md:px-12">
+             <div className="text-center mb-16 opacity-30">
+               <div className="h-10 w-64 bg-zinc-300 mx-auto rounded animate-pulse mb-4"></div>
+               <div className="h-4 w-48 bg-zinc-300 mx-auto rounded animate-pulse"></div>
+             </div>
+             <div className="flex justify-center gap-4">
+                <div className="h-12 w-32 bg-zinc-200 rounded-full animate-pulse"></div>
+                <div className="h-12 w-40 bg-zinc-200 rounded-full animate-pulse"></div>
+                <div className="h-12 w-36 bg-zinc-200 rounded-full animate-pulse"></div>
+             </div>
+           </div>
+        </section>
+        <section className="py-24 bg-[#f8fafc] relative z-20 border-b border-gray-100">
+           <div className="max-w-7xl mx-auto px-6 md:px-12">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               <SkeletonCard height="h-[450px]" />
+               <SkeletonCard height="h-[450px]" />
+               <SkeletonCard height="h-[450px]" />
+             </div>
+           </div>
+        </section>
       </div>
     );
   }

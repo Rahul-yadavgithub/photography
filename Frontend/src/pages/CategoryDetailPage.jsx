@@ -5,6 +5,7 @@ import { getActiveOffers } from '../api/offerService';
 import { ChevronRight, LayoutGrid, CheckCircle2, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import EditorialHero from '../components/common/EditorialHero';
 import AutoScrollingPackageCarousel from '../components/shared/AutoScrollingPackageCarousel';
+import PremiumLoader from '../components/shared/PremiumLoader';
 import useSEO from '../hooks/useSEO';
 
 function FAQItem({ faq }) {
@@ -68,8 +69,8 @@ function CategoryDetailPage() {
 
   if (loading) {
     return (
-      <div className="bg-[#f8fafc] w-full min-h-screen pt-32 pb-24 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+      <div className="bg-[#f8fafc] w-full min-h-screen pt-20 flex items-center justify-center">
+        <PremiumLoader text="CURATING CATEGORY..." />
       </div>
     );
   }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { getPortfolio } from '../api/portfolioService';
+import PremiumLoader from '../components/shared/PremiumLoader';
 import useSEO from '../hooks/useSEO';
 
 export default function CollectionDetailPage() {
@@ -56,7 +57,7 @@ export default function CollectionDetailPage() {
   if (loading) {
     return (
       <div className="w-full h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ea580c]"></div>
+        <PremiumLoader text="CURATING COLLECTION..." />
       </div>
     );
   }

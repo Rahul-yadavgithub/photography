@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { getPortfolio } from '../api/portfolioService';
 import useSEO from '../hooks/useSEO';
 import InfiniteCarousel from '../components/common/InfiniteCarousel';
+import PremiumLoader from '../components/shared/PremiumLoader';
 
 // --- COMPONENTS ---
 
@@ -364,8 +365,8 @@ export default function PortfolioPage() {
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-white font-sans w-full relative selection:bg-[#ea580c] selection:text-white">
       {loading ? (
-        <div className="w-full h-[500px] bg-[#0a0a0a] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ea580c]"></div>
+        <div className="w-full h-screen bg-[#0a0a0a] flex items-center justify-center">
+          <PremiumLoader text="CURATING PORTFOLIO..." />
         </div>
       ) : (
         <>
