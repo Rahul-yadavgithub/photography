@@ -27,7 +27,15 @@ export const useApi = () => {
         delete headers['Content-Type'];
       }
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      // Normalize endpoint to prevent double /api
+      let cleanEndpoint = endpoint;
+      if (cleanEndpoint.startsWith('/api/')) {
+        cleanEndpoint = cleanEndpoint.substring(4);
+      } else if (!cleanEndpoint.startsWith('/')) {
+        cleanEndpoint = '/' + cleanEndpoint;
+      }
+
+      const response = await fetch(`${API_BASE_URL}${cleanEndpoint}`, {
         ...options,
         headers,
       });
