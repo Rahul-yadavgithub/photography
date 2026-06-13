@@ -108,4 +108,4 @@ Photography/
 
 **Shubman Photo Studio** - [Website Link](https://photography-alpha-gold.vercel.app)
 
-Project Link: [https://github.com/Rahul-yadavgithub/photography](https://github.com/Rahul-yadavgithub/photography)
+Project Link: [https://github.com/Rahul-yadavgithub](https://github.com/Rahul-yadavgithub)
