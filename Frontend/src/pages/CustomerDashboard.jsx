@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, User, Phone, Mail, Clock, CheckCircle, XCircle, CreditCard, AlertCircle, Package, Archive, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -11,6 +11,7 @@ const CustomerDashboard = () => {
   useSEO();
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bookings');
   const [bookings, setBookings] = useState([]);
@@ -28,7 +29,12 @@ const CustomerDashboard = () => {
     try {
       setLoading(true);
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/bookings/user/${user.id}`);
+      const token = await getToken();
+      const response = await fetch(`${backendUrl}/api/bookings/user/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const result = await response.json();
       if (result.success) {
         setBookings(result.data);
@@ -58,8 +64,12 @@ const CustomerDashboard = () => {
       setIsProcessing(true);
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
       const endpoint = `${backendUrl}/api/bookings/${booking._id}/${type}`;
+      const token = await getToken();
       const response = await fetch(endpoint, {
         method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       const result = await response.json();
       if (result.success) {
