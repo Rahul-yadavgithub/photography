@@ -90,15 +90,15 @@ Photography/
 
 ## 🖼️ Media & Screenshots
 
-*(Upload your screenshots to your repository or image host and update the links below)*
+**
 
 | Customer Booking Flow | Admin Package Dashboard |
 | --------------------- | ----------------------- |
-| <img src="https://via.placeholder.com/600x400?text=Booking+Flow+Screenshot" width="100%"> | <img src="https://via.placeholder.com/600x400?text=Admin+Dashboard+Screenshot" width="100%"> |
+| <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342011/Screenshot_from_2026-06-13_14-36-08_cobakj.png" width="100%"> | <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342437/Screenshot_from_2026-06-13_14-50-18_h1zoby.png" width="100%"> |
 
 | Cinematic Portfolio | E-Commerce Store |
 | ------------------- | ---------------- |
-| <img src="https://via.placeholder.com/600x400?text=Portfolio+Screenshot" width="100%"> | <img src="https://via.placeholder.com/600x400?text=Store+Screenshot" width="100%"> |
+| <img src="https://via.placeholder.com/600x400?text=Portfolio+Screenshot" width="100%"> | <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342888/Screenshot_from_2026-06-13_14-57-32_uc2w6y.png" width="100%"> |
 
 ---
 
