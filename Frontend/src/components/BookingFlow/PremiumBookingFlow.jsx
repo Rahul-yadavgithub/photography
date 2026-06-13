@@ -157,9 +157,9 @@ const PremiumBookingFlow = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[101] flex items-center justify-center p-[5vh] sm:p-[10vh] pointer-events-none"
+            className="fixed inset-0 z-[101] flex items-center justify-center p-0 sm:py-[10vh] sm:px-[10vw] pointer-events-none"
           >
-            <div className={`w-full max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] xl:max-w-[60vw] bg-white rounded-3xl shadow-2xl overflow-hidden pointer-events-auto h-full flex flex-col relative transition-all duration-500`}
+            <div className={`w-full h-full bg-white rounded-none sm:rounded-3xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col relative transition-all duration-500`}
             >
               
               {/* Header / Draggable Area */}

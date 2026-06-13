@@ -5,6 +5,7 @@ import razorpay from '../utils/razorpay.js';
 import crypto from 'crypto';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/AppError.js';
+import { sendAdminNotification } from '../utils/notification.js';
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
@@ -104,6 +105,11 @@ export const createBooking = catchAsync(async (req, res, next) => {
 
     const booking = await Booking.create(bookingPayload);
 
+    // If no advance payment is required, the booking is effectively submitted. Trigger notification.
+    if (!isAdvancePayment || advanceAmount === 0) {
+      sendAdminNotification(booking);
+    }
+
     res.status(201).json({
       success: true,
       data: booking,
@@ -154,6 +160,9 @@ export const verifyPayment = catchAsync(async (req, res, next) => {
       paymentMethod: 'Online',
       transactionDate: new Date(),
     });
+
+    // Payment is verified, so the booking is officially submitted. Trigger notification.
+    sendAdminNotification(booking);
 
     res.status(200).json({ success: true, message: 'Payment verified successfully', data: booking });
 });

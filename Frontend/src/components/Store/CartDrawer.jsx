@@ -2,10 +2,12 @@ import React from 'react';
 import { ShoppingBag, X, ChevronRight, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { useIntent } from '../../context/IntentContext';
 
 export default function CartDrawer() {
   const { items, removeFromCart, isDrawerOpen, setIsDrawerOpen, getCartTotal } = useCart();
   const navigate = useNavigate();
+  const { executeProtectedAction } = useIntent();
 
   const total = getCartTotal();
 
@@ -84,7 +86,7 @@ export default function CartDrawer() {
             <button 
               onClick={() => {
                 setIsDrawerOpen(false);
-                navigate('/store/checkout');
+                executeProtectedAction('NAVIGATE', { path: '/store/checkout' }, '/store/checkout');
               }} 
               className="w-full py-4 bg-gray-900 text-white rounded font-bold text-xs uppercase tracking-widest hover:bg-[#ea580c] transition-colors flex justify-center items-center"
             >

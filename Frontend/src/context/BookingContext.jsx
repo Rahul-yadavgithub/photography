@@ -54,16 +54,26 @@ export const BookingProvider = ({ children }) => {
   const openBookingFlow = (metadata = null) => {
     if (metadata && metadata.packageId) {
       setInitialPackage(metadata);
-      setBookingData(prev => ({
-        ...prev,
-        packageId: metadata.packageId,
-        packageName: metadata.packageName || metadata.name,
-        enquiryType: metadata.category || prev.enquiryType,
-        basePrice: metadata.basePrice || metadata.price || 0,
-        selectedAddons: metadata.selectedAddons || [],
-        subtotal: metadata.totalPrice || 0, // Using passed total price as subtotal if tax isn't calculated yet
-        totalPrice: metadata.totalPrice || 0,
-      }));
+      setBookingData(prev => {
+        const basePrice = metadata.basePrice || metadata.price || 0;
+        const selectedAddons = metadata.selectedAddons || [];
+        const addonsTotal = selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0);
+        const subtotal = basePrice + addonsTotal;
+        const tax = Math.round(subtotal * 0.18);
+        const totalPrice = subtotal + tax;
+
+        return {
+          ...prev,
+          packageId: metadata.packageId,
+          packageName: metadata.packageName || metadata.name,
+          enquiryType: metadata.category || prev.enquiryType,
+          basePrice,
+          selectedAddons,
+          subtotal,
+          tax,
+          totalPrice,
+        };
+      });
       // If we pass in package details, skip the first steps and go to Step 3 (Event Details)
       setStep(3);
     }

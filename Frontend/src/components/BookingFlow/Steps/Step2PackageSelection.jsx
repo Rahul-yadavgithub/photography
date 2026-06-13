@@ -45,7 +45,9 @@ const Step2PackageSelection = ({ data, updateData, onNext }) => {
     updateData({ 
       packageId: pkg._id,
       packageName: pkg.name,
-      selectedPackageSnapshot: pkg
+      selectedPackageSnapshot: pkg,
+      basePrice: pkg.discountPrice || pkg.price || 0,
+      selectedAddons: []
     });
     // Immediately continue booking
     setTimeout(onNext, 50);

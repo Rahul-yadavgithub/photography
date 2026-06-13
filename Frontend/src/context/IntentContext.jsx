@@ -13,18 +13,19 @@ export const IntentProvider = ({ children }) => {
   const location = useLocation();
   const hasExecutedIntent = useRef(false);
 
-  const executeProtectedAction = (actionType, metadata = null) => {
+  const executeProtectedAction = (actionType, metadata = null, customRedirectUrl = null) => {
     if (isSignedIn) {
       handleIntent(actionType, metadata);
     } else {
+      const redirectPath = customRedirectUrl || window.location.pathname;
       // Save intent to localStorage to survive OAuth redirects
       localStorage.setItem('photography_pending_intent', JSON.stringify({
         actionType,
-        targetRoute: window.location.pathname,
+        targetRoute: redirectPath,
         metadata
       }));
       // Set redirectUrl so Clerk knows where to go after auth
-      openSignIn({ forceRedirectUrl: window.location.pathname });
+      openSignIn({ forceRedirectUrl: redirectPath });
     }
   };
 
@@ -32,6 +33,11 @@ export const IntentProvider = ({ children }) => {
     switch (actionType) {
       case 'OPEN_BOOKING_FLOW':
         openBookingFlow(metadata);
+        break;
+      case 'NAVIGATE':
+        if (metadata?.path) {
+          navigate(metadata.path);
+        }
         break;
       // Add more cases here in the future
       case 'SAVE_PACKAGE':
