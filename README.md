@@ -1,6 +1,6 @@
 <!-- Replace this with a stunning cover image of your studio/platform -->
 <div align="center">
-  <img src="https://via.placeholder.com/1000x300?text=Shubman+Photo+Studio+Platform" alt="Platform Banner">
+  <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342011/Screenshot_from_2026-06-13_14-36-08_cobakj.png alt="Platform Banner">
 
   <h1 align="center">Shubman Photo Studio Platform</h1>
 
@@ -54,53 +54,13 @@ Whether a user is browsing cinematic film reels, scrolling through dynamic pose 
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Project Status: Closed Source
 
-Follow these instructions to get a local copy up and running.
+Please note that the **Shubman Photo Studio Platform** is a proprietary, closed-source web application. 
 
-### Prerequisites
+This repository serves strictly as a **public showcase** and documentation hub to demonstrate the architecture, features, and capabilities of the platform. The actual source code (Frontend, Backend, and Admin Dashboard) is hosted in a separate, private repository to protect the intellectual property and business logic.
 
-* Node.js (v18 or higher recommended)
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation & Running Locally
-
-The project is split into three main directories: `Backend`, `Frontend` (Customer-facing), and `frontend1` (Admin Dashboard).
-
-1. **Clone the repository**
-   ```sh
-   git clone https://github.com/your-username/photography-platform.git
-   cd photography-platform
-   ```
-
-2. **Start the Backend Server**
-   Open a new terminal and navigate to the Backend directory:
-   ```sh
-   cd Backend
-   npm install
-   npm run dev
-   ```
-   *(The backend usually runs on `http://localhost:5000`)*
-
-3. **Start the Customer Frontend**
-   Open a second terminal:
-   ```sh
-   cd Frontend
-   npm install
-   npm run dev
-   ```
-   *(The frontend usually runs on `http://localhost:5173`)*
-
-4. **Start the Admin Dashboard**
-   Open a third terminal:
-   ```sh
-   cd frontend1
-   npm install
-   npm run dev
-   ```
+Therefore, this repository cannot be cloned to run the application locally. You can explore the live demo link provided at the top or view the screenshots below to experience the platform.
 
 ---
 
@@ -142,30 +102,10 @@ Photography/
 
 ---
 
-## 🔐 Environment Variables
 
-To run this project, you will need to add the following environment variables to your `.env` files.
-
-**Backend (`Backend/.env`)**
-```env
-PORT=5000
-MONGODB_URI=your_mongo_connection_string
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-CLOUDINARY_URL=your_cloudinary_url
-CORS_ORIGIN=http://localhost:5173
-```
-
-**Frontend (`Frontend/.env`)**
-```env
-VITE_BACKEND_URL=http://localhost:5000
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
-```
-
----
 
 ## 🤝 Contact
 
-**Shubman Photo Studio** - [Website Link](https://your-website.com)
+**Shubman Photo Studio** - [Website Link](https://photography-alpha-gold.vercel.app)
 
-Project Link: [https://github.com/your-username/photography-platform](https://github.com/your-username/photography-platform)
+Project Link: [https://github.com/Rahul-yadavgithub/photography](https://github.com/Rahul-yadavgithub/photography)
