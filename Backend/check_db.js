@@ -2,18 +2,15 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI);
-
-const reviewSchema = new mongoose.Schema({}, { strict: false });
-const Review = mongoose.model('Review', reviewSchema, 'reviews');
-
-async function check() {
-    const reviews = await Review.find();
-    console.log("Reviews in 'reviews' collection:", reviews.length);
-    console.log(reviews);
-    
-    // Maybe they are stored elsewhere? 
-    // What was the old model?
-    process.exit();
-}
-check();
+mongoose.connect(process.env.MONGO_URI)
+  .then(async () => {
+    const db = mongoose.connection.db;
+    const booking = await db.collection('bookings').findOne({ bookingReference: 'BKG-ZT65I2VL' });
+    console.log("Booking Refund Status:", booking.refundStatus);
+    console.log("Booking Admin Notes:", booking.adminNotes);
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
+  });

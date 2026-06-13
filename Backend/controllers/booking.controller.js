@@ -223,7 +223,8 @@ export const rejectBooking = catchAsync(async (req, res, next) => {
       } catch (refundError) {
         console.error('Razorpay Refund Error:', refundError);
         refundStatus = 'failed';
-        adminNotes = `Refund failed: ${refundError.description || refundError.message}`;
+        const errorMessage = refundError.error?.description || refundError.message || 'Unknown error';
+        adminNotes = `Refund failed: ${errorMessage}`;
       }
     }
 
@@ -320,7 +321,8 @@ export const cancelBooking = catchAsync(async (req, res, next) => {
       } catch (refundError) {
         console.error('Razorpay Refund Error:', refundError);
         refundStatus = 'failed';
-        adminNotes = `Refund failed: ${refundError.description || refundError.message}`;
+        const errorMessage = refundError.error?.description || refundError.message || 'Unknown error';
+        adminNotes = `Refund failed: ${errorMessage}`;
       }
     }
 
