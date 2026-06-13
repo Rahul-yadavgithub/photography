@@ -96,9 +96,9 @@ Photography/
 | --------------------- | ----------------------- |
 | <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342011/Screenshot_from_2026-06-13_14-36-08_cobakj.png" width="100%"> | <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342437/Screenshot_from_2026-06-13_14-50-18_h1zoby.png" width="100%"> |
 
-| Cinematic Portfolio | E-Commerce Store |
-| ------------------- | ---------------- |
-| <img src="https://via.placeholder.com/600x400?text=Portfolio+Screenshot" width="100%"> | <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342888/Screenshot_from_2026-06-13_14-57-32_uc2w6y.png" width="100%"> |
+| E-Commerce Store |
+| ---------------- |
+|  <img src="https://res.cloudinary.com/dzbliymin/image/upload/v1781342888/Screenshot_from_2026-06-13_14-57-32_uc2w6y.png" width="100%"> |
 
 ---
 
