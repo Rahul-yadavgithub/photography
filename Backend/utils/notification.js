@@ -64,7 +64,11 @@ const sendSMS = async (message) => {
     });
     console.log(`SMS notification sent to ${adminPhone}`);
   } catch (error) {
-    console.error('Error sending SMS notification:', error);
+    if (error.code === 21608) {
+      console.warn(`Twilio Trial Limitation: Cannot send SMS to unverified number ${adminPhone}. Please verify this number in the Twilio console or upgrade your account.`);
+    } else {
+      console.error('Error sending SMS notification:', error.message || error);
+    }
   }
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth, RedirectToSignIn } from '@clerk/clerk-react';
+import { useAuth, SignIn } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
@@ -18,8 +18,11 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isSignedIn) {
-    // Pass the current location so they return here after signing in
-    return <RedirectToSignIn redirectUrl={location.pathname + location.search} />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <SignIn routing="virtual" redirectUrl={location.pathname + location.search} />
+      </div>
+    );
   }
 
   return children;
