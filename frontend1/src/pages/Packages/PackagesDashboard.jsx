@@ -238,7 +238,7 @@ const PackagesDashboard = () => {
                           <span className="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-lg text-sm font-semibold">{pkg.category}</span>
                         </td>
                         <td className="px-8 py-5">
-                          <span className="font-bold text-zinc-900 text-base">${pkg.price?.toLocaleString() || 'N/A'}</span>
+                          <span className="font-bold text-zinc-900 text-base">₹{pkg.price?.toLocaleString() || 'N/A'}</span>
                         </td>
                         <td className="px-8 py-5">
                           <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide ${pkg.status === 'Published' ? 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'}`}>

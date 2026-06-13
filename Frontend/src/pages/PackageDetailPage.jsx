@@ -28,7 +28,27 @@ function PackageDetailPage() {
   const [selectedAddons, setSelectedAddons] = useState([]);
   const { executeProtectedAction } = useIntent();
 
-  const totalPrice = pkg ? (pkg.price + selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0)) : 0;
+  let basePrice = 0;
+  let originalPrice = 0;
+  if (pkg) {
+    originalPrice = pkg.price;
+    basePrice = pkg.discountPrice || pkg.price;
+    if (offers && offers.length > 0) {
+      basePrice = offers.reduce((lowest, o) => {
+        if (o.type === 'Percentage Discount') {
+          const price = originalPrice - (originalPrice * (o.discountPercentage / 100));
+          return price < lowest ? price : lowest;
+        }
+        if (o.type === 'Flat Discount') {
+          const price = originalPrice - o.flatDiscountAmount;
+          return price < lowest ? price : lowest;
+        }
+        return lowest;
+      }, basePrice);
+    }
+  }
+
+  const totalPrice = pkg ? (basePrice + selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0)) : 0;
 
   const toggleAddon = (addon) => {
     setSelectedAddons(prev => {
@@ -102,28 +122,18 @@ function PackageDetailPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         {/* Dynamic Pricing / Savings Hierarchy */}
-        {pkg.showPricing !== false && offers.length > 0 && offers.some(o => o.type === 'Percentage Discount' || o.type === 'Flat Discount') && (
+        {pkg.showPricing !== false && (offers.some(o => o.type === 'Percentage Discount' || o.type === 'Flat Discount') || (pkg.discountPrice && pkg.discountPrice < pkg.price)) && (
           <div className="bg-white rounded-3xl p-8 border border-[#ea580c]/20 shadow-[0_8px_30px_rgb(234,88,12,0.1)] mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 bg-red-100 text-red-600 font-bold text-xs uppercase tracking-wider rounded-full">Limited Offer</span>
+                {offers.some(o => o.type === 'Percentage Discount' || o.type === 'Flat Discount') && (
+                  <span className="px-3 py-1 bg-red-100 text-red-600 font-bold text-xs uppercase tracking-wider rounded-full">Limited Offer</span>
+                )}
                 <span className="text-gray-600 font-bold line-through text-lg">₹{pkg.price}</span>
               </div>
               <div className="flex items-end gap-2">
                 <span className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
-                  ₹{
-                    offers.reduce((lowest, o) => {
-                      if (o.type === 'Percentage Discount') {
-                        const price = pkg.price - (pkg.price * (o.discountPercentage / 100));
-                        return price < lowest ? price : lowest;
-                      }
-                      if (o.type === 'Flat Discount') {
-                        const price = pkg.price - o.flatDiscountAmount;
-                        return price < lowest ? price : lowest;
-                      }
-                      return lowest;
-                    }, pkg.price)
-                  }
+                  ₹{basePrice}
                 </span>
                 <span className="text-gray-600 font-medium mb-1">/ package</span>
               </div>
@@ -133,19 +143,7 @@ function PackageDetailPage() {
               <div className="text-right">
                 <div className="text-xs font-bold text-orange-200 uppercase tracking-widest mb-1">You Save</div>
                 <div className="text-2xl font-black tracking-tight">
-                  ₹{
-                    pkg.price - offers.reduce((lowest, o) => {
-                      if (o.type === 'Percentage Discount') {
-                        const price = pkg.price - (pkg.price * (o.discountPercentage / 100));
-                        return price < lowest ? price : lowest;
-                      }
-                      if (o.type === 'Flat Discount') {
-                        const price = pkg.price - o.flatDiscountAmount;
-                        return price < lowest ? price : lowest;
-                      }
-                      return lowest;
-                    }, pkg.price)
-                  }
+                  ₹{pkg.price - basePrice}
                 </div>
               </div>
             </div>
@@ -343,7 +341,8 @@ function PackageDetailPage() {
               packageId: pkg._id,
               category: pkg.category, 
               name: pkg.name, 
-              basePrice: pkg.price,
+              basePrice: basePrice,
+              price: originalPrice,
               features: pkg.features.map(f => f.title),
               selectedAddons: selectedAddons,
               totalPrice: totalPrice

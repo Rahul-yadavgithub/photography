@@ -53,18 +53,40 @@ const Step3EventDetails = ({ data, updateData, onNext }) => {
                      <Check className="w-3 h-3 text-[#D4AF37]" />
                    </div>
                    <div>
-                     <span className="text-sm font-medium text-gray-800 block">{feature.title}</span>
+                     <span className="text-sm font-medium text-gray-800 block">{feature.title || feature}</span>
                      {feature.description && <span className="text-xs text-gray-500 block mt-0.5">{feature.description}</span>}
                    </div>
                  </div>
                ))}
             </div>
             
-            <div className="pt-6 border-t border-gray-200">
-               <p className="text-xs text-gray-500 mb-1">Package Price</p>
-               <p className="text-2xl font-light text-gray-900">
-                 ₹{pkg?.discountPrice ? pkg.discountPrice.toLocaleString() : pkg?.price?.toLocaleString() || 'Custom'}
-               </p>
+            <div className="pt-5 border-t border-gray-200">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Package Price</span>
+                <span className="text-sm font-bold text-gray-900">₹{data.basePrice ? data.basePrice.toLocaleString() : 'Custom'}</span>
+              </div>
+              
+              {data.selectedAddons && data.selectedAddons.length > 0 && (
+                <div className="mb-3 space-y-2">
+                  {data.selectedAddons.map((addon, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 flex items-center gap-1.5">
+                         <span className="text-[#ea580c]">+</span> <span className="line-clamp-1">{addon.name}</span>
+                      </span>
+                      <span className="text-gray-600 font-medium whitespace-nowrap">₹{(addon.price || 0).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className="pt-3 border-t border-gray-100 flex justify-between items-end mt-2">
+                 <div>
+                   <p className="text-xs font-bold text-gray-900 uppercase tracking-widest">Total Amount</p>
+                 </div>
+                 <p className="text-2xl font-black text-[#ea580c] tracking-tight">
+                   ₹{data.totalPrice ? data.totalPrice.toLocaleString() : 'Custom'}
+                 </p>
+              </div>
             </div>
           </div>
         </div>

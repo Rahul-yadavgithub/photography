@@ -43,8 +43,8 @@ export const BookingProvider = ({ children }) => {
       if (data.basePrice !== undefined || data.selectedAddons !== undefined) {
         const addonsTotal = (updated.selectedAddons || []).reduce((sum, a) => sum + (a.price || 0), 0);
         updated.subtotal = (updated.basePrice || 0) + addonsTotal;
-        updated.tax = Math.round(updated.subtotal * 0.18); // Example: 18% GST. Can be updated dynamically if needed.
-        updated.totalPrice = updated.subtotal + updated.tax;
+        updated.tax = 0; 
+        updated.totalPrice = updated.subtotal;
       }
       
       return updated;
@@ -59,14 +59,15 @@ export const BookingProvider = ({ children }) => {
         const selectedAddons = metadata.selectedAddons || [];
         const addonsTotal = selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0);
         const subtotal = basePrice + addonsTotal;
-        const tax = Math.round(subtotal * 0.18);
-        const totalPrice = subtotal + tax;
+        const tax = 0;
+        const totalPrice = subtotal;
 
         return {
           ...prev,
           packageId: metadata.packageId,
           packageName: metadata.packageName || metadata.name,
           enquiryType: metadata.category || prev.enquiryType,
+          selectedPackageSnapshot: metadata,
           basePrice,
           selectedAddons,
           subtotal,

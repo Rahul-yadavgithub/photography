@@ -65,26 +65,51 @@ const Step5Review = ({ data, onNext, onEditStep }) => {
           ))}
 
           {renderSection('Selected Package & Add-ons', 2, (
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-900 text-lg">{pkg?.name || data.packageName}</span>
-                <span className="text-gray-900 font-medium">₹{(data.basePrice || pkg?.discountPrice || pkg?.price || 0).toLocaleString()}</span>
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col space-y-4">
+              
+              {/* Category and Package Name */}
+              <div>
+                <span className="px-2.5 py-1 bg-[#ea580c]/10 text-[#ea580c] text-[10px] font-bold uppercase tracking-wider rounded-md mb-2 inline-block">
+                  {data.enquiryType || pkg?.category || 'Photography'}
+                </span>
+                <h4 className="font-bold text-gray-900 text-lg">{pkg?.name || data.packageName}</h4>
               </div>
               
-              {data.selectedAddons && data.selectedAddons.length > 0 && (
-                <div className="pl-4 space-y-2 border-l-2 border-gray-100 py-2 my-2">
-                  {data.selectedAddons.map((addon, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">+ {addon.name}</span>
-                      <span className="text-gray-600">₹{(addon.price || 0).toLocaleString()}</span>
-                    </div>
-                  ))}
+              <div className="border-t border-gray-100 pt-3 space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Base Price (Original)</span>
+                  <span className="text-gray-500 line-through">₹{(pkg?.price || data.basePrice || 0).toLocaleString()}</span>
                 </div>
-              )}
+                
+                {pkg?.price && data.basePrice && pkg.price > data.basePrice && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-green-600 font-medium">Discount Applied</span>
+                    <span className="text-green-600 font-medium">- ₹{(pkg.price - data.basePrice).toLocaleString()}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-gray-900">Package Price</span>
+                  <span className="font-medium text-gray-900">₹{(data.basePrice || 0).toLocaleString()}</span>
+                </div>
+
+                {data.selectedAddons && data.selectedAddons.length > 0 && (
+                  <div className="pt-2 mt-2 border-t border-gray-50 space-y-2">
+                    {data.selectedAddons.map((addon, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">+ {addon.name}</span>
+                        <span className="text-gray-600">₹{(addon.price || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               
-              <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
-                <span className="font-bold text-gray-900 uppercase tracking-widest text-xs">Total Amount</span>
-                <span className="font-bold text-[#ea580c] text-xl">₹{(data.totalPrice || 0).toLocaleString()}</span>
+              <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                <div>
+                  <span className="block font-bold text-gray-900 uppercase tracking-widest text-xs">Total Amount</span>
+                </div>
+                <span className="font-bold text-[#ea580c] text-2xl">₹{(data.totalPrice || 0).toLocaleString()}</span>
               </div>
             </div>
           ))}

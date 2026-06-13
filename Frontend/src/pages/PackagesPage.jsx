@@ -153,7 +153,7 @@ function PackagesPage() {
                   {/* Bottom Action Row */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Starting From</span>
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Price</span>
                       <span className="text-xl font-bold text-gray-900">
                         {category.startingPrice ? `₹${category.startingPrice}` : 'Custom Quote'}
                       </span>

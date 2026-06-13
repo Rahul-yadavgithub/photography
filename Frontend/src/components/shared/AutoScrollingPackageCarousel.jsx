@@ -200,7 +200,7 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
                     {/* Bottom Action Row */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0 mt-2 md:mt-0">
                       <div>
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Starting From</span>
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Price</span>
                         {pkg.showPricing === false ? (
                           <span className="text-[28px] md:text-xl font-bold text-gray-900 leading-none">Custom Quote</span>
                         ) : (
@@ -232,9 +232,15 @@ const AutoScrollingPackageCarousel = ({ packages }) => {
                                   </div>
                                 )}
                                 <div className="flex items-center gap-2 md:gap-1">
-                                  <span className="text-[28px] md:text-xl font-bold text-gray-900 leading-none">₹{hasDiscount ? lowestPrice : pkg.price}</span>
-                                  {!hasDiscount && pkg.discountPrice && (
-                                    <span className="text-sm md:text-xs text-gray-400 line-through">₹{pkg.discountPrice}</span>
+                                  {hasDiscount ? (
+                                    <span className="text-[28px] md:text-xl font-bold text-gray-900 leading-none">₹{lowestPrice}</span>
+                                  ) : pkg.discountPrice ? (
+                                    <>
+                                      <span className="text-[28px] md:text-xl font-bold text-gray-900 leading-none">₹{pkg.discountPrice}</span>
+                                      <span className="text-sm md:text-xs text-gray-400 line-through">₹{pkg.price}</span>
+                                    </>
+                                  ) : (
+                                    <span className="text-[28px] md:text-xl font-bold text-gray-900 leading-none">₹{pkg.price}</span>
                                   )}
                                 </div>
                               </div>
